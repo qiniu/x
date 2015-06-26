@@ -23,17 +23,17 @@ const (
 	xlogKey key = 0
 )
 
-type xlogger interface {
+type Xlogger interface {
 	ReqId() string
 	Xput(logs []string)
 }
 
-func NewXlogContext(ctx Context, l xlogger) Context {
+func NewXlogContext(ctx Context, l Xlogger) Context {
 	return WithValue(ctx, xlogKey, l)
 }
 
-func XlogFromContext(ctx Context) (l xlogger, ok bool) {
-	l, ok = ctx.Value(xlogKey).(xlogger)
+func XlogFromContext(ctx Context) (l Xlogger, ok bool) {
+	l, ok = ctx.Value(xlogKey).(Xlogger)
 	return
 }
 
@@ -168,7 +168,7 @@ func (r Client) Do(ctx Context, req *http.Request) (resp *http.Response, err err
 
 // --------------------------------------------------------------------
 
-type errorInfo struct {
+type ErrorInfo struct {
 	Err   string `json:"error"`
 	Key   string `json:"key,omitempty"`
 	Errno int    `json:"errno,omitempty"`
@@ -176,25 +176,25 @@ type errorInfo struct {
 	Reqid string `json:"reqid"`
 }
 
-func (r *errorInfo) ErrorDetail() string {
+func (r *ErrorInfo) ErrorDetail() string {
 	msg, _ := json.Marshal(r)
 	return string(msg)
 }
 
-func (r *errorInfo) Error() string {
+func (r *ErrorInfo) Error() string {
 	if r.Err != "" {
 		return r.Err
 	}
 	return http.StatusText(r.Code)
 }
 
-func (r *errorInfo) HttpCode() int {
+func (r *ErrorInfo) HttpCode() int {
 	return r.Code
 }
 
 // --------------------------------------------------------------------
 
-func parseError(e *errorInfo, r io.Reader) {
+func parseError(e *ErrorInfo, r io.Reader) {
 
 	body, err1 := ioutil.ReadAll(r)
 	if err1 != nil {
@@ -217,7 +217,7 @@ func parseError(e *errorInfo, r io.Reader) {
 
 func ResponseError(resp *http.Response) (err error) {
 
-	e := &errorInfo{
+	e := &ErrorInfo{
 		Reqid: resp.Header.Get("X-Reqid"),
 		Code:  resp.StatusCode,
 	}
