@@ -1,5 +1,3 @@
-package bytes
-
 /*
 Package qiniupkg.com/x/bytes.v7 提供了 byte slice 相关的扩展。
 
@@ -40,4 +38,5 @@ n, err := b.ReadAt(slice, 0)
 ```
 
 */
+package bytes
 
