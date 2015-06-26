@@ -169,11 +169,11 @@ func (r Client) Do(ctx Context, req *http.Request) (resp *http.Response, err err
 // --------------------------------------------------------------------
 
 type ErrorInfo struct {
-	Err   string `json:"error"`
+	Err   string `json:"error,omitempty"`
 	Key   string `json:"key,omitempty"`
+	Reqid string `json:"reqid,omitempty"`
 	Errno int    `json:"errno,omitempty"`
 	Code  int    `json:"code"`
-	Reqid string `json:"reqid"`
 }
 
 func (r *ErrorInfo) ErrorDetail() string {
