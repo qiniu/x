@@ -1,5 +1,5 @@
 /*
-Package qiniupkg.com/x/bytes.v7 提供了 byte slice 相关的扩展。
+包 qiniupkg.com/x/bytes.v7 提供了 byte slice 相关的功能扩展
 
 NewReader 创建一个 byte slice 的只读流：
 
@@ -30,7 +30,6 @@ NewBuffer 创建一个可随机读写的内存文件，支持 ReadAt/WriteAt 方
   slice := make([]byte, 105)
   n, err := b.ReadAt(slice, 0)
   ...
-
 */
 package bytes
 
