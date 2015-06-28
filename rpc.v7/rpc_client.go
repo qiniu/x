@@ -10,32 +10,12 @@ import (
 	"reflect"
 	"strings"
 
+	"qiniupkg.com/x/reqid.v7"
+
 	. "golang.org/x/net/context"
 )
 
 var UserAgent = "Golang qiniu/rpc package"
-
-// --------------------------------------------------------------------
-
-type key int // key is unexported and used for Context
-
-const (
-	xlogKey key = 0
-)
-
-type Xlogger interface {
-	ReqId() string
-	Xput(logs []string)
-}
-
-func NewXlogContext(ctx Context, l Xlogger) Context {
-	return WithValue(ctx, xlogKey, l)
-}
-
-func XlogFromContext(ctx Context) (l Xlogger, ok bool) {
-	l, ok = ctx.Value(xlogKey).(Xlogger)
-	return
-}
 
 // --------------------------------------------------------------------
 
@@ -115,9 +95,8 @@ func (r Client) Do(ctx Context, req *http.Request) (resp *http.Response, err err
 		ctx = Background()
 	}
 
-	l, lok := XlogFromContext(ctx)
-	if lok {
-		req.Header.Set("X-Reqid", l.ReqId())
+	if reqid, ok := reqid.FromContext(ctx); ok {
+		req.Header.Set("X-Reqid", reqid)
 	}
 
 	if req.Header.Get("User-Agent") == "" {
@@ -152,16 +131,6 @@ func (r Client) Do(ctx Context, req *http.Request) (resp *http.Response, err err
 		}
 	} else {
 		resp, err = r.Client.Do(req)
-	}
-	if err != nil {
-		return
-	}
-
-	if lok {
-		details := resp.Header["X-Log"]
-		if len(details) > 0 {
-			l.Xput(details)
-		}
 	}
 	return
 }

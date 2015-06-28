@@ -1,4 +1,4 @@
-Package qiniupkg.com/x
+qiniupkg.com/x
 ===============
 
 # 下载
