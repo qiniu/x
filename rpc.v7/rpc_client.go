@@ -3,6 +3,7 @@ package rpc
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +16,13 @@ import (
 	. "golang.org/x/net/context"
 )
 
-var UserAgent = "Golang qiniu/rpc package"
+var (
+	UserAgent = "Golang qiniu/rpc package"
+)
+
+var (
+	ErrInvalidRequestURL = errors.New("invalid request url")
+)
 
 // --------------------------------------------------------------------
 
@@ -23,13 +30,41 @@ type Client struct {
 	*http.Client
 }
 
-var DefaultClient = Client{&http.Client{Transport: http.DefaultTransport}}
+var (
+	DefaultClient = Client{&http.Client{Transport: http.DefaultTransport}}
+)
 
 // --------------------------------------------------------------------
 
+func newRequest(method, url1 string, body io.Reader) (req *http.Request, err error) {
+
+	var host string
+
+	// url1 = "-H <Host> http://<ip>[:<port>]/<path>"
+	//
+	if strings.HasPrefix(url1, "-H") {
+		url2 := strings.TrimLeft(url1[2:], " \t")
+		pos := strings.Index(url2, " ")
+		if pos <= 0 {
+			return nil, ErrInvalidRequestURL
+		}
+		host = url2[:pos]
+		url1 = strings.TrimLeft(url2[pos+1:], " \t")
+	}
+
+	req, err = http.NewRequest(method, url1, body)
+	if err != nil {
+		return
+	}
+	if host != "" {
+		req.Host = host
+	}
+	return
+}
+
 func (r Client) DoRequest(ctx Context, method, url string) (resp *http.Response, err error) {
 
-	req, err := http.NewRequest(method, url, nil)
+	req, err := newRequest(method, url, nil)
 	if err != nil {
 		return
 	}
@@ -40,7 +75,7 @@ func (r Client) DoRequestWith(
 	ctx Context, method, url1 string,
 	bodyType string, body io.Reader, bodyLength int) (resp *http.Response, err error) {
 
-	req, err := http.NewRequest(method, url1, body)
+	req, err := newRequest(method, url1, body)
 	if err != nil {
 		return
 	}
@@ -53,7 +88,7 @@ func (r Client) DoRequestWith64(
 	ctx Context, method, url1 string,
 	bodyType string, body io.Reader, bodyLength int64) (resp *http.Response, err error) {
 
-	req, err := http.NewRequest(method, url1, body)
+	req, err := newRequest(method, url1, body)
 	if err != nil {
 		return
 	}
@@ -283,7 +318,7 @@ func getRequestCanceler(tp http.RoundTripper) (rc requestCanceler, ok bool) {
 	v := reflect.ValueOf(tp)
 
 subfield:
-	// panic if the Field is unexported (but this can be detected in developing)
+	// panic if the Field is unexported (but this can be detected while developing)
 	if rc, ok = v.Interface().(requestCanceler); ok {
 		return
 	}
