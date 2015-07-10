@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
 
 	"qiniupkg.com/x/reqid.v7"
@@ -134,7 +133,7 @@ func (r Client) Do(ctx Context, req *http.Request) (resp *http.Response, err err
 		req.Header.Set("X-Reqid", reqid)
 	}
 
-	if req.Header.Get("User-Agent") == "" {
+	if _, ok := req.Header["User-Agent"]; !ok {
 		req.Header.Set("User-Agent", UserAgent)
 	}
 
@@ -181,18 +180,23 @@ type ErrorInfo struct {
 }
 
 func (r *ErrorInfo) ErrorDetail() string {
+
 	msg, _ := json.Marshal(r)
 	return string(msg)
 }
 
 func (r *ErrorInfo) Error() string {
-	if r.Err != "" {
-		return r.Err
-	}
-	return http.StatusText(r.Code)
+
+	return r.Err
+}
+
+func (r *ErrorInfo) RpcError() (code, errno int, key, err string) {
+
+	return r.Code, r.Errno, r.Key, r.Err
 }
 
 func (r *ErrorInfo) HttpCode() int {
+
 	return r.Code
 }
 
@@ -313,29 +317,27 @@ type requestCanceler interface {
 	CancelRequest(req *http.Request)
 }
 
+type nestedObjectGetter interface {
+	NestedObject() interface{}
+}
+
 func getRequestCanceler(tp http.RoundTripper) (rc requestCanceler, ok bool) {
 
-	v := reflect.ValueOf(tp)
-
-subfield:
-	// panic if the Field is unexported (but this can be detected while developing)
-	if rc, ok = v.Interface().(requestCanceler); ok {
+	if rc, ok = tp.(requestCanceler); ok {
 		return
 	}
-	v = reflect.Indirect(v)
-	if v.Kind() == reflect.Struct {
-		for i := v.NumField() - 1; i >= 0; i-- {
-			sv := v.Field(i)
-			if sv.Kind() == reflect.Interface {
-				sv = sv.Elem()
-			}
-			if sv.MethodByName("RoundTrip").IsValid() {
-				v = sv
-				goto subfield
-			}
+
+	p := interface{}(tp)
+	for {
+		getter, ok1 := p.(nestedObjectGetter)
+		if !ok1 {
+			return
+		}
+		p = getter.NestedObject()
+		if rc, ok = p.(requestCanceler); ok {
+			return
 		}
 	}
-	return
 }
 
 // --------------------------------------------------------------------
