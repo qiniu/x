@@ -32,3 +32,35 @@ func TestNewRequest(t *testing.T) {
 
 // --------------------------------------------------------------------
 
+type transport struct {
+	a http.RoundTripper
+}
+
+func (p *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	return p.a.RoundTrip(req)
+}
+
+func (p *transport) NestedObject() interface{} {
+	return p.a
+}
+
+func Test_getRequestCanceler(t *testing.T) {
+
+	p := &transport{a: http.DefaultTransport}
+	if _, ok := getRequestCanceler(p); !ok {
+		t.Fatal("getRequestCanceler failed")
+	}
+
+	p2 := &transport{a: p}
+	if _, ok := getRequestCanceler(p2); !ok {
+		t.Fatal("getRequestCanceler(p2) failed")
+	}
+
+	p3 := &transport{}
+	if _, ok := getRequestCanceler(p3); ok {
+		t.Fatal("getRequestCanceler(p3)?")
+	}
+}
+
+// --------------------------------------------------------------------
+
