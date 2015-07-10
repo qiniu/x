@@ -1,7 +1,7 @@
 qiniupkg.com/x
 ===============
 
-[![GoDoc](https://godoc.org/qiniupkg.com/x?status.svg)](https://godoc.org/qiniupkg.com/x)
+[![Build Status](https://travis-ci.org/qiniu/x.svg?branch=develop)](https://travis-ci.org/qiniu/x) [![GoDoc](https://godoc.org/qiniupkg.com/x?status.svg)](https://godoc.org/qiniupkg.com/x)
 
 # 下载
 
