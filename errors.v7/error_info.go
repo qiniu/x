@@ -83,8 +83,8 @@ func Info(err error, cmd ...interface{}) *ErrorInfo {
 	return &ErrorInfo{cmd: cmd, err: Err(err), pc: pc}
 }
 
-func InfoEx(skip int, err error, cmd ...interface{}) *ErrorInfo {
-	pc, _, _, ok := runtime.Caller(skip)
+func InfoEx(calldepth int, err error, cmd ...interface{}) *ErrorInfo {
+	pc, _, _, ok := runtime.Caller(calldepth+1)
 	if !ok {
 		pc = 0
 	}
