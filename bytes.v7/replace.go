@@ -17,8 +17,7 @@ func ReplaceAt(b []byte, off, nsrc int, dest []byte) []byte {
 	}
 
 	if ndelta > 0 {
-		tailoff := len(b) - ndelta
-		b = append(b, b[tailoff:]...)
+		b = append(b, dest[:ndelta]...)
 		copy(b[off+len(dest):], b[off+nsrc:])
 		copy(b[off:], dest)
 	} else {
