@@ -6,19 +6,24 @@ import (
 
 // ---------------------------------------------------
 
-func ReplaceAt(b []byte, off int, src, dest []byte) []byte {
+func ReplaceAt(b []byte, off, nsrc int, dest []byte) []byte {
 
-	nsrc, ndest := len(src), len(dest)
-	if nsrc >= ndest {
+	ndelta := len(dest) - nsrc
+	if ndelta < 0 {
 		left := b[off+nsrc:]
 		off += copy(b[off:], dest)
 		off += copy(b[off:], left)
 		return b[:off]
 	}
-	tailoff := len(b) - (ndest - nsrc)
-	b = append(b, b[tailoff:]...)
-	copy(b[off+ndest:], b[off+nsrc:len(b)])
-	copy(b[off:], dest)
+
+	if ndelta > 0 {
+		tailoff := len(b) - ndelta
+		b = append(b, b[tailoff:]...)
+		copy(b[off+len(dest):], b[off+nsrc:])
+		copy(b[off:], dest)
+	} else {
+		copy(b[off:], dest)
+	}
 	return b
 }
 
@@ -30,7 +35,7 @@ func ReplaceOne(b []byte, from int, src, dest []byte) ([]byte, int) {
 	}
 
 	from += pos
-	return ReplaceAt(b, from, src, dest), from + len(dest)
+	return ReplaceAt(b, from, len(src), dest), from + len(dest)
 }
 
 func Replace(b []byte, src, dest []byte, n int) []byte {

@@ -22,9 +22,11 @@ func TestReplace(t *testing.T) {
 	cases := []replaceCase{
 		{"hello, world!", "world", "xsw", -1},
 		{"hello, world world world", "world", "xsw", 1},
+		{"hello, world world world", "world", "xsw", 2},
 		{"hello, world world world", "world", "xsw", -1},
 		{"hello, xsw!", "xsw", "world", -1},
 		{"hello, xsw xsw xsw", "xsw", "world", 1},
+		{"hello, xsw xsw xsw", "xsw", "world", 2},
 		{"hello, xsw xsw xsw", "xsw", "world", -1},
 	}
 
@@ -34,6 +36,19 @@ func TestReplace(t *testing.T) {
 		if ret != expected {
 			t.Fatal("Replace failed:", c, "ret:", ret, "expected:", expected)
 		}
+	}
+}
+
+func stringInsertAt(b string, off int, text string) string {
+
+	return string(ReplaceAt([]byte(b), off, 0, []byte(text)))
+}
+
+func TestInsertAt(t *testing.T) {
+
+	ret := stringInsertAt("helloworld", 5, ", ")
+	if ret != "hello, world" {
+		t.Fatal("InsertAt failed:", ret)
 	}
 }
 
