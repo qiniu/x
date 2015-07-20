@@ -12,9 +12,11 @@ go get qiniupkg.com/x
 # 使用文档
 
 * [qiniupkg.com/x/bytes.v7](http://godoc.org/qiniupkg.com/x/bytes.v7)
+* [qiniupkg.com/x/config.v7](http://godoc.org/qiniupkg.com/x/config.v7)
 * [qiniupkg.com/x/ctype.v7](http://godoc.org/qiniupkg.com/x/ctype.v7)
 * [qiniupkg.com/x/log.v7](http://godoc.org/qiniupkg.com/x/log.v7)
 * [qiniupkg.com/x/reqid.v7](http://godoc.org/qiniupkg.com/x/reqid.v7)
 * [qiniupkg.com/x/rpc.v7](http://godoc.org/qiniupkg.com/x/rpc.v7)
+* [qiniupkg.com/x/rpc.v7/gob](http://godoc.org/qiniupkg.com/x/rpc.v7/gob)
 * [qiniupkg.com/x/url.v7](http://godoc.org/qiniupkg.com/x/url.v7)
 * [qiniupkg.com/x/xlog.v7](http://godoc.org/qiniupkg.com/x/xlog.v7)
