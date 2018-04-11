@@ -1,4 +1,4 @@
-package x
+package x // import "qiniupkg.com/x"
 
 import (
 	_ "qiniupkg.com/x/bytes.v7"
@@ -6,4 +6,3 @@ import (
 	_ "qiniupkg.com/x/rpc.v7"
 	_ "qiniupkg.com/x/url.v7"
 )
-

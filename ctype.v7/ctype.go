@@ -1,4 +1,4 @@
-package ctype
+package ctype // import "qiniupkg.com/x/ctype.v7"
 
 const (
 	UPPER     = 0x01       /* upper case letter[A-Z] */

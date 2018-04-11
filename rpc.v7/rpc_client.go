@@ -1,4 +1,4 @@
-package rpc
+package rpc // import "qiniupkg.com/x/rpc.v7"
 
 import (
 	"bytes"
@@ -106,7 +106,7 @@ func (r Client) DoRequestWithForm(
 		} else {
 			url1 += "?"
 		}
-		return r.DoRequest(ctx, method, url1 + msg)
+		return r.DoRequest(ctx, method, url1+msg)
 	}
 	return r.DoRequestWith(
 		ctx, method, url1, "application/x-www-form-urlencoded", strings.NewReader(msg), len(msg))
@@ -341,4 +341,3 @@ func getRequestCanceler(tp http.RoundTripper) (rc requestCanceler, ok bool) {
 }
 
 // --------------------------------------------------------------------
-

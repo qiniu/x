@@ -30,5 +30,4 @@ NewBuffer 创建一个可随机读写的内存文件，支持 ReadAt/WriteAt 方
 	n, err := b.ReadAt(slice, 0)
 	...
 */
-package bytes
-
+package bytes // import "qiniupkg.com/x/bytes.v7"

@@ -1,4 +1,4 @@
-package url
+package url // import "qiniupkg.com/x/url.v7"
 
 import (
 	"strconv"

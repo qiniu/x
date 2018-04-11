@@ -1,4 +1,4 @@
-package xlog
+package xlog // import "qiniupkg.com/x/xlog.v7"
 
 import (
 	"fmt"

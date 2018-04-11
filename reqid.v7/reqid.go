@@ -1,8 +1,8 @@
-package reqid
+package reqid // import "qiniupkg.com/x/reqid.v7"
 
 import (
-	"encoding/binary"
 	"encoding/base64"
+	"encoding/binary"
 	"net/http"
 	"time"
 
@@ -49,4 +49,3 @@ func FromContext(ctx Context) (reqid string, ok bool) {
 }
 
 // --------------------------------------------------------------------
-

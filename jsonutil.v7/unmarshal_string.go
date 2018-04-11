@@ -1,4 +1,4 @@
-package jsonutil
+package jsonutil // import "qiniupkg.com/x/jsonutil.v7"
 
 import (
 	"encoding/json"
@@ -11,9 +11,8 @@ import (
 func Unmarshal(data string, v interface{}) error {
 
 	sh := *(*reflect.StringHeader)(unsafe.Pointer(&data))
-	arr := (*[1<<30]byte)(unsafe.Pointer(sh.Data))
+	arr := (*[1 << 30]byte)(unsafe.Pointer(sh.Data))
 	return json.Unmarshal(arr[:sh.Len], v)
 }
 
 // ----------------------------------------------------------
-

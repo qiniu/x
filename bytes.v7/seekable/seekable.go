@@ -1,5 +1,5 @@
 // This package provide a method to read and replace http.Request's body.
-package seekable
+package seekable // import "qiniupkg.com/x/bytes.v7/seekable"
 
 import (
 	"errors"

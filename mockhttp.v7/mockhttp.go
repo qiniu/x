@@ -1,4 +1,4 @@
-package mockhttp
+package mockhttp // import "qiniupkg.com/x/mockhttp.v7"
 
 import (
 	"errors"

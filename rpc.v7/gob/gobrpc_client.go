@@ -1,4 +1,4 @@
-package gob
+package gob // import "qiniupkg.com/x/rpc.v7/gob"
 
 import (
 	"bytes"
@@ -104,4 +104,3 @@ func (r Client) CallWithGob(
 }
 
 // ---------------------------------------------------------------------------
-

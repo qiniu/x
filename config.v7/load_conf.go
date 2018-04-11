@@ -1,4 +1,4 @@
-package config
+package config // import "qiniupkg.com/x/config.v7"
 
 import (
 	"bytes"
@@ -106,11 +106,10 @@ func trimCommentsLine(line []byte) []byte {
 		case '"':
 			quoteCount++
 		case '#':
-			if (quoteCount&1) == 0 {
+			if (quoteCount & 1) == 0 {
 				return line[:i]
 			}
 		}
 	}
 	return line
 }
-

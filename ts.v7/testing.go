@@ -1,4 +1,4 @@
-package ts
+package ts // import "qiniupkg.com/x/ts.v7"
 
 import (
 	"fmt"
