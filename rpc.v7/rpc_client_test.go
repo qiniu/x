@@ -10,15 +10,7 @@ import (
 
 func TestNewRequest(t *testing.T) {
 
-	req, err := http.NewRequest("GET", "-H\t abc.com \thttp://127.0.0.1/foo/bar", nil)
-	if err != nil {
-		t.Fatal("http.NewRequest failed")
-	}
-	if req.Host != "" {
-		t.Fatal(`http.NewRequest: req.Host != ""`)
-	}
-
-	req, err = newRequest("GET", "-H\t abc.com \thttp://127.0.0.1/foo/bar", nil)
+	req, err := newRequest("GET", "-H\t abc.com \thttp://127.0.0.1/foo/bar", nil)
 	if err != nil {
 		t.Fatal("newRequest failed:", err)
 	}
@@ -63,4 +55,3 @@ func Test_getRequestCanceler(t *testing.T) {
 }
 
 // --------------------------------------------------------------------
-
