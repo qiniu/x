@@ -6,8 +6,8 @@ import (
 	"os"
 	"runtime"
 
-	"qiniupkg.com/x/log.v7"
-	"qiniupkg.com/x/reqid.v7"
+	"github.com/qiniu/x/log.v7"
+	"github.com/qiniu/x/reqid.v7"
 
 	. "golang.org/x/net/context"
 )
