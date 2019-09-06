@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"qiniupkg.com/x/mockhttp.v7"
-	"qiniupkg.com/x/rpc.v7"
+	"github.com/qiniu/x/mockhttp"
+	"github.com/qiniu/x/rpc"
 )
 
 // --------------------------------------------------------------------
@@ -111,4 +111,3 @@ func TestBasic(t *testing.T) {
 }
 
 // --------------------------------------------------------------------
-

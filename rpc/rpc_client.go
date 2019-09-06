@@ -10,9 +10,9 @@ import (
 	"net/url"
 	"strings"
 
-	"qiniupkg.com/x/reqid.v7"
+	"github.com/qiniu/x/reqid"
 
-	. "golang.org/x/net/context"
+	. "context"
 )
 
 var (
@@ -35,7 +35,7 @@ var (
 
 // --------------------------------------------------------------------
 
-func newRequest(method, url1 string, body io.Reader) (req *http.Request, err error) {
+func NewRequest(method, url1 string, body io.Reader) (req *http.Request, err error) {
 
 	var host string
 
@@ -63,7 +63,7 @@ func newRequest(method, url1 string, body io.Reader) (req *http.Request, err err
 
 func (r Client) DoRequest(ctx Context, method, url string) (resp *http.Response, err error) {
 
-	req, err := newRequest(method, url, nil)
+	req, err := NewRequest(method, url, nil)
 	if err != nil {
 		return
 	}
@@ -74,7 +74,7 @@ func (r Client) DoRequestWith(
 	ctx Context, method, url1 string,
 	bodyType string, body io.Reader, bodyLength int) (resp *http.Response, err error) {
 
-	req, err := newRequest(method, url1, body)
+	req, err := NewRequest(method, url1, body)
 	if err != nil {
 		return
 	}
@@ -87,7 +87,7 @@ func (r Client) DoRequestWith64(
 	ctx Context, method, url1 string,
 	bodyType string, body io.Reader, bodyLength int64) (resp *http.Response, err error) {
 
-	req, err := newRequest(method, url1, body)
+	req, err := NewRequest(method, url1, body)
 	if err != nil {
 		return
 	}
@@ -106,7 +106,7 @@ func (r Client) DoRequestWithForm(
 		} else {
 			url1 += "?"
 		}
-		return r.DoRequest(ctx, method, url1 + msg)
+		return r.DoRequest(ctx, method, url1+msg)
 	}
 	return r.DoRequestWith(
 		ctx, method, url1, "application/x-www-form-urlencoded", strings.NewReader(msg), len(msg))
@@ -341,4 +341,3 @@ func getRequestCanceler(tp http.RoundTripper) (rc requestCanceler, ok bool) {
 }
 
 // --------------------------------------------------------------------
-

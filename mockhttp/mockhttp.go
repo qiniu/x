@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 
-	"qiniupkg.com/x/log.v7"
+	"github.com/qiniu/x/log"
 )
 
 var (

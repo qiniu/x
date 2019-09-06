@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"qiniupkg.com/x/bytes.v7"
+	"github.com/qiniu/x/bytes"
 )
 
 // ---------------------------------------------------

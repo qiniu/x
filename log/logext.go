@@ -51,10 +51,10 @@ var levels = []string{
 // the Writer's Write method.  A Logger can be used simultaneously from
 // multiple goroutines; it guarantees to serialize access to the Writer.
 type Logger struct {
-	mu         sync.Mutex // ensures atomic writes; protects the following fields
-	prefix     string     // prefix to write at beginning of each line
-	flag       int        // properties
-	Level      int        // debug level
+	mu         sync.Mutex   // ensures atomic writes; protects the following fields
+	prefix     string       // prefix to write at beginning of each line
+	flag       int          // properties
+	Level      int          // debug level
 	out        io.Writer    // destination for output
 	buf        bytes.Buffer // for accumulating text to write
 	levelStats [6]int64

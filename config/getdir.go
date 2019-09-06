@@ -38,4 +38,3 @@ func GetDir(app string) (dir string, err error) {
 	}
 	return "", ErrHomeNotFound
 }
-

@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"qiniupkg.com/x/rpc.v7"
+	"github.com/qiniu/x/rpc"
 
-	. "golang.org/x/net/context"
+	. "context"
 )
 
 // ---------------------------------------------------------------------------
@@ -104,4 +104,3 @@ func (r Client) CallWithGob(
 }
 
 // ---------------------------------------------------------------------------
-

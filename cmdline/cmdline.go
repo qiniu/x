@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	. "qiniupkg.com/x/ctype.v7"
+	. "github.com/qiniu/x/ctype"
 )
 
 /* ---------------------------------------------------------------------------
@@ -45,12 +45,12 @@ equal $(code1) 200
 // -------------------------------------------------------------------------*/
 
 var (
-	EOF = errors.New("end of file")
-	ErrUnsupportedFeatureSubCmd = errors.New("unsupported feature: sub command")
-	ErrUnsupportedFeatureMultiCmds = errors.New("unsupported feature: multi commands")
-	ErrInvalidEscapeChar = errors.New("invalid escape char")
-	ErrIncompleteStringExpectQuot = errors.New("incomplete string, expect \"")
-	ErrIncompleteStringExpectSquot = errors.New("incomplete string, expect '")
+	EOF                               = errors.New("end of file")
+	ErrUnsupportedFeatureSubCmd       = errors.New("unsupported feature: sub command")
+	ErrUnsupportedFeatureMultiCmds    = errors.New("unsupported feature: multi commands")
+	ErrInvalidEscapeChar              = errors.New("invalid escape char")
+	ErrIncompleteStringExpectQuot     = errors.New("incomplete string, expect \"")
+	ErrIncompleteStringExpectSquot    = errors.New("incomplete string, expect '")
 	ErrIncompleteStringExpectBacktick = errors.New("incomplete string, expect ` or |")
 )
 
@@ -108,7 +108,7 @@ func NewParser() *Parser {
 
 	return &Parser{
 		ExecSub: defaultExecSub,
-		Escape: defaultEscape,
+		Escape:  defaultEscape,
 	}
 }
 
@@ -125,8 +125,8 @@ const (
 )
 
 const (
-	endMask_QuotString = RDIV | BACKTICK | OR | QUOT			// [\\`|"]
-	endMask_NonquotString = RDIV | BACKTICK | OR | blankAndEOLs	// [\\`| \t\r\n;]
+	endMask_QuotString    = RDIV | BACKTICK | OR | QUOT         // [\\`|"]
+	endMask_NonquotString = RDIV | BACKTICK | OR | blankAndEOLs // [\\`| \t\r\n;]
 )
 
 func (p *Parser) parseString(
@@ -174,7 +174,7 @@ func (p *Parser) parseString(
 			}
 			codeNext = codeNext[len+1:]
 		case '"':
-			ok = true			
+			ok = true
 			codeNext = codeNext[n+1:]
 			return
 		default:
@@ -184,7 +184,7 @@ func (p *Parser) parseString(
 			codeNext = codeNext[n+1:]
 			return
 		}
-		ok = true			
+		ok = true
 	}
 	return
 }
@@ -261,4 +261,3 @@ func (p *Parser) ParseCode(code string) (cmd []string, codeNext string, err erro
 }
 
 // ---------------------------------------------------------------------------
-

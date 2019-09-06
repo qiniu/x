@@ -6,10 +6,10 @@ import (
 	"os"
 	"runtime"
 
-	"qiniupkg.com/x/log.v7"
-	"qiniupkg.com/x/reqid.v7"
+	"github.com/qiniu/x/log"
+	"github.com/qiniu/x/reqid"
 
-	. "golang.org/x/net/context"
+	. "context"
 )
 
 const (

@@ -1,12 +1,12 @@
 package reqid
 
 import (
-	"encoding/binary"
 	"encoding/base64"
+	"encoding/binary"
 	"net/http"
 	"time"
 
-	. "golang.org/x/net/context"
+	. "context"
 )
 
 // --------------------------------------------------------------------
@@ -49,4 +49,3 @@ func FromContext(ctx Context) (reqid string, ok bool) {
 }
 
 // --------------------------------------------------------------------
-

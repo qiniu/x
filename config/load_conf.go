@@ -6,7 +6,7 @@ import (
 	"flag"
 	"io/ioutil"
 
-	"qiniupkg.com/x/log.v7"
+	"github.com/qiniu/x/log"
 )
 
 var (
@@ -106,11 +106,10 @@ func trimCommentsLine(line []byte) []byte {
 		case '"':
 			quoteCount++
 		case '#':
-			if (quoteCount&1) == 0 {
+			if (quoteCount & 1) == 0 {
 				return line[:i]
 			}
 		}
 	}
 	return line
 }
-
