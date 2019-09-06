@@ -1,7 +1,7 @@
 github.com/qiniu/x
 ===============
 
-[![Build Status](https://travis-ci.org/qiniu/x.svg?branch=develop)](https://travis-ci.org/qiniu/x) [![GoDoc](https://godoc.org/github.com/qiniu/x?status.svg)](https://godoc.org/github.com/qiniu/x)
+[![Build Status](https://travis-ci.org/qiniu/x.svg?branch=master)](https://travis-ci.org/qiniu/x) [![GoDoc](https://godoc.org/github.com/qiniu/x?status.svg)](https://godoc.org/github.com/qiniu/x)
 
 # 下载
 
