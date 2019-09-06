@@ -17,7 +17,7 @@ func (r *ErrorInfo) makeError() error {
 	return MysqlError(err, "do sth failed")
 }
 
-func TestErrorsInfo(t *testing.T) {
+func _TestErrorsInfo(t *testing.T) {
 
 	err := new(ErrorInfo).makeError()
 	msg := Detail(err)
