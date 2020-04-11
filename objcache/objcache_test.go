@@ -2,18 +2,14 @@ package objcache
 
 import (
 	"sync"
+	"sync/atomic"
 	"testing"
-	"unsafe"
 )
 
 var (
 	once        sync.Once
 	stringGroup Getter
-
-	// cacheFills is the number of times stringGroup or
-	// protoGroup's Getter have been called. Read using the
-	// cacheFills function.
-	cacheFills AtomicInt
+	cacheFills  int64
 )
 
 const (
@@ -28,15 +24,15 @@ func (p stringVal) Dispose() error {
 
 func testSetup() {
 	stringGroup = NewGroup(stringGroupName, 0, GetterFunc(func(key string) (val Value, err error) {
-		cacheFills.Add(1)
+		atomic.AddInt64(&cacheFills, 1)
 		return stringVal("ECHO:" + key), nil
 	}))
 }
 
 func countFills(f func()) int64 {
-	fills0 := cacheFills.Get()
+	fills0 := atomic.LoadInt64(&cacheFills)
 	f()
-	return cacheFills.Get() - fills0
+	return atomic.LoadInt64(&cacheFills) - fills0
 }
 
 func TestCaching(t *testing.T) {
@@ -61,13 +57,5 @@ func TestGetVal(t *testing.T) {
 	}
 	if want := "ECHO:short"; string(val.(stringVal)) != want {
 		t.Errorf("key got %q; want %q", val, want)
-	}
-}
-
-func TestGroupStatsAlignment(t *testing.T) {
-	var g Group
-	off := unsafe.Offsetof(g.Stats)
-	if off%8 != 0 {
-		t.Fatal("Stats structure is not 8-byte aligned.")
 	}
 }

@@ -1,9 +1,7 @@
 package objcache
 
 import (
-	"strconv"
 	"sync"
-	"sync/atomic"
 
 	"github.com/qiniu/x/objcache/lru"
 )
@@ -46,15 +44,6 @@ type Group struct {
 	getter Getter
 
 	mainCache cache
-
-	// Stats are statistics on the group.
-	Stats Stats
-}
-
-// Stats are per-group statistics.
-type Stats struct {
-	Gets      AtomicInt // any Get request
-	CacheHits AtomicInt // either cache was good
 }
 
 var (
@@ -105,13 +94,10 @@ func (g *Group) Name() string {
 
 // Get func.
 func (g *Group) Get(key string) (val Value, err error) {
-	g.Stats.Gets.Add(1)
 	val, ok := g.mainCache.get(key)
 	if ok {
-		g.Stats.CacheHits.Add(1)
 		return
 	}
-
 	val, err = g.getter.Get(key)
 	if err == nil {
 		g.mainCache.add(key, val)
@@ -179,23 +165,6 @@ func (c *cache) items() int64 {
 
 func (c *cache) itemsLocked() int64 {
 	return int64(c.lru.Len())
-}
-
-// An AtomicInt is an int64 to be accessed atomically.
-type AtomicInt int64
-
-// Add atomically adds n to i.
-func (i *AtomicInt) Add(n int64) {
-	atomic.AddInt64((*int64)(i), n)
-}
-
-// Get atomically gets the value of i.
-func (i *AtomicInt) Get() int64 {
-	return atomic.LoadInt64((*int64)(i))
-}
-
-func (i *AtomicInt) String() string {
-	return strconv.FormatInt(i.Get(), 10)
 }
 
 // CacheStats are returned by stats accessors on Group.
