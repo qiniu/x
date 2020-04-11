@@ -8,7 +8,7 @@ import (
 
 var (
 	once        sync.Once
-	stringGroup Getter
+	stringGroup *Group
 	cacheFills  int64
 )
 
@@ -23,10 +23,10 @@ func (p stringVal) Dispose() error {
 }
 
 func testSetup() {
-	stringGroup = NewGroup(stringGroupName, 0, GetterFunc(func(ctx interface{}, key string) (val Value, err error) {
+	stringGroup = NewGroup(stringGroupName, 0, func(ctx Context, key Key) (val Value, err error) {
 		atomic.AddInt64(&cacheFills, 1)
-		return stringVal("ECHO:" + key), nil
-	}))
+		return stringVal("ECHO:" + key.(string)), nil
+	})
 }
 
 func countFills(f func()) int64 {

@@ -6,24 +6,20 @@ import (
 	"github.com/qiniu/x/objcache/lru"
 )
 
-// A Value represents a value.
-type Value interface {
-	Dispose() error
-}
+// Key type.
+type Key = lru.Key
 
-// A Getter loads data for a key.
-type Getter interface {
-	// Get returns the value identified by key.
-	Get(ctx interface{}, key string) (val Value, err error)
-}
+// Value type.
+type Value = interface{}
+
+// Context type.
+type Context = interface{}
+
+// OnEvictedFunc func.
+type OnEvictedFunc = func(key Key, value Value)
 
 // A GetterFunc implements Getter with a function.
-type GetterFunc func(ctx interface{}, key string) (val Value, err error)
-
-// Get func.
-func (f GetterFunc) Get(ctx interface{}, key string) (val Value, err error) {
-	return f(ctx, key)
-}
+type GetterFunc = func(ctx Context, key Key) (val Value, err error)
 
 // newGroupHook, if non-nil, is called right after a new group is created.
 var newGroupHook func(*Group)
@@ -40,8 +36,8 @@ func RegisterNewGroupHook(fn func(*Group)) {
 // A Group is a cache namespace and associated data loaded spread over
 // a group of 1 or more machines.
 type Group struct {
-	name   string
-	getter Getter
+	name string
+	get  GetterFunc
 
 	mainCache cache
 }
@@ -69,17 +65,17 @@ func GetGroup(name string) *Group {
 // completes.
 //
 // The group name must be unique for each getter.
-func NewGroup(name string, cacheNum int, getter Getter) *Group {
+func NewGroup(name string, cacheNum int, getter GetterFunc, onEvicted ...OnEvictedFunc) *Group {
 	mu.Lock()
 	defer mu.Unlock()
 	if _, dup := groups[name]; dup {
 		panic("duplicate registration of group " + name)
 	}
 	g := &Group{
-		name:   name,
-		getter: getter,
+		name: name,
+		get:  getter,
 	}
-	g.mainCache.init(cacheNum)
+	g.mainCache.init(cacheNum, onEvicted...)
 	if newGroupHook != nil {
 		newGroupHook(g)
 	}
@@ -93,12 +89,12 @@ func (g *Group) Name() string {
 }
 
 // Get func.
-func (g *Group) Get(ctx interface{}, key string) (val Value, err error) {
+func (g *Group) Get(ctx Context, key Key) (val Value, err error) {
 	val, ok := g.mainCache.get(key)
 	if ok {
 		return
 	}
-	val, err = g.getter.Get(ctx, key)
+	val, err = g.get(ctx, key)
 	if err == nil {
 		g.mainCache.add(key, val)
 	}
@@ -117,35 +113,32 @@ type cache struct {
 	mu         sync.RWMutex
 	lru        *lru.Cache
 	nhit, nget int64
-	nevict     int64 // number of evictions
 }
 
 func (c *cache) stats() CacheStats {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return CacheStats{
-		Items:     c.itemsLocked(),
-		Gets:      c.nget,
-		Hits:      c.nhit,
-		Evictions: c.nevict,
+		Items: c.itemsLocked(),
+		Gets:  c.nget,
+		Hits:  c.nhit,
 	}
 }
 
-func (c *cache) init(cacheNum int) {
+func (c *cache) init(cacheNum int, onEvicted ...OnEvictedFunc) {
 	c.lru = lru.New(cacheNum)
-	c.lru.OnEvicted = func(key lru.Key, value interface{}) {
-		value.(Value).Dispose()
-		c.nevict++
+	if onEvicted != nil {
+		c.lru.OnEvicted = onEvicted[0]
 	}
 }
 
-func (c *cache) add(key string, value Value) {
+func (c *cache) add(key Key, value Value) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.lru.Add(key, value)
 }
 
-func (c *cache) get(key string) (value Value, ok bool) {
+func (c *cache) get(key Key) (value Value, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.nget++
@@ -169,8 +162,7 @@ func (c *cache) itemsLocked() int64 {
 
 // CacheStats are returned by stats accessors on Group.
 type CacheStats struct {
-	Items     int64
-	Gets      int64
-	Hits      int64
-	Evictions int64
+	Items int64
+	Gets  int64
+	Hits  int64
 }
