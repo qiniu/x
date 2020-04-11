@@ -14,15 +14,15 @@ type Value interface {
 // A Getter loads data for a key.
 type Getter interface {
 	// Get returns the value identified by key.
-	Get(key string) (val Value, err error)
+	Get(ctx interface{}, key string) (val Value, err error)
 }
 
 // A GetterFunc implements Getter with a function.
-type GetterFunc func(key string) (val Value, err error)
+type GetterFunc func(ctx interface{}, key string) (val Value, err error)
 
 // Get func.
-func (f GetterFunc) Get(key string) (val Value, err error) {
-	return f(key)
+func (f GetterFunc) Get(ctx interface{}, key string) (val Value, err error) {
+	return f(ctx, key)
 }
 
 // newGroupHook, if non-nil, is called right after a new group is created.
@@ -93,12 +93,12 @@ func (g *Group) Name() string {
 }
 
 // Get func.
-func (g *Group) Get(key string) (val Value, err error) {
+func (g *Group) Get(ctx interface{}, key string) (val Value, err error) {
 	val, ok := g.mainCache.get(key)
 	if ok {
 		return
 	}
-	val, err = g.getter.Get(key)
+	val, err = g.getter.Get(ctx, key)
 	if err == nil {
 		g.mainCache.add(key, val)
 	}

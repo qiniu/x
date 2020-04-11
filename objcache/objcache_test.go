@@ -23,7 +23,7 @@ func (p stringVal) Dispose() error {
 }
 
 func testSetup() {
-	stringGroup = NewGroup(stringGroupName, 0, GetterFunc(func(key string) (val Value, err error) {
+	stringGroup = NewGroup(stringGroupName, 0, GetterFunc(func(ctx interface{}, key string) (val Value, err error) {
 		atomic.AddInt64(&cacheFills, 1)
 		return stringVal("ECHO:" + key), nil
 	}))
@@ -39,7 +39,7 @@ func TestCaching(t *testing.T) {
 	once.Do(testSetup)
 	fills := countFills(func() {
 		for i := 0; i < 10; i++ {
-			_, err := stringGroup.Get("TestCaching-key")
+			_, err := stringGroup.Get(nil, "TestCaching-key")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -51,7 +51,7 @@ func TestCaching(t *testing.T) {
 }
 
 func TestGetVal(t *testing.T) {
-	val, err := stringGroup.Get("short")
+	val, err := stringGroup.Get(nil, "short")
 	if err != nil {
 		t.Fatal(err)
 	}
