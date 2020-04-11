@@ -101,6 +101,11 @@ func (g *Group) Get(ctx Context, key Key) (val Value, err error) {
 	return
 }
 
+// TryGet func.
+func (g *Group) TryGet(key Key) (val Value, ok bool) {
+	return g.mainCache.get(key)
+}
+
 // CacheStats returns stats about the provided cache within the group.
 func (g *Group) CacheStats() CacheStats {
 	return g.mainCache.stats()
