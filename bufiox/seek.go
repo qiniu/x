@@ -12,10 +12,13 @@ type Reader struct {
 	bufio.Reader
 }
 
+const (
+	defaultBufSize = 4096
+)
+
 // NewReader returns a new Reader whose buffer has the default size.
 func NewReader(rd io.ReadSeeker) *Reader {
-	r := bufio.NewReader(rd)
-	return &Reader{Reader: *r}
+	return NewReaderSize(rd, defaultBufSize)
 }
 
 // NewReaderSize returns a new Reader whose buffer has at least the specified
@@ -23,6 +26,10 @@ func NewReader(rd io.ReadSeeker) *Reader {
 // it returns the underlying Reader.
 //
 func NewReaderSize(rd io.ReadSeeker, size int) *Reader {
+	b, ok := rd.(*Reader)
+	if ok && b.Size() >= size {
+		return b
+	}
 	r := bufio.NewReaderSize(rd, size)
 	return &Reader{Reader: *r}
 }

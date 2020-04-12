@@ -71,6 +71,11 @@ func TestSeeker(t *testing.T) {
 	if err != nil || string(data) != "Hello, china!!!" {
 		t.Fatal("ReadAll failed:", err, data)
 	}
+
+	b3 := NewReaderSize(b2, 32)
+	if b2 != b3 {
+		t.Fatal("NewReader on *bufiox.Reader")
+	}
 }
 
 // -------------------------------------------------------------------------------------
