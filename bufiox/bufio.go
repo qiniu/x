@@ -3,6 +3,7 @@ package bufiox
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"io"
 	"unsafe"
 )
@@ -64,6 +65,34 @@ func ReadAll(b *bufio.Reader) (ret []byte, err error) {
 	var w bytes.Buffer
 	_, err1 := b.WriteTo(&w)
 	return w.Bytes(), err1
+}
+
+// -----------------------------------------------------------------------------
+
+func getUnderlyingReader(b *bufio.Reader) io.Reader {
+	r := (*reader)(unsafe.Pointer(b))
+	return r.rd
+}
+
+// ErrSeekUnsupported error.
+var ErrSeekUnsupported = errors.New("bufio: the underlying reader doesn't support seek")
+
+// Seek sets the offset for the next Read or Write to offset, interpreted
+// according to whence: SeekStart means relative to the start of the file,
+// SeekCurrent means relative to the current offset, and SeekEnd means
+// relative to the end. Seek returns the new offset relative to the start
+// of the file and an error, if any.
+//
+func Seek(b *bufio.Reader, offset int64, whence int) (int64, error) {
+	r := getUnderlyingReader(b)
+	if seeker, ok := r.(io.Seeker); ok {
+		newoff, err := seeker.Seek(offset, whence)
+		if err == nil {
+			b.Reset(r)
+		}
+		return newoff, err
+	}
+	return 0, ErrSeekUnsupported
 }
 
 // -----------------------------------------------------------------------------
