@@ -77,7 +77,7 @@ func UnderlyingReader(b interface{}) io.Reader {
 	case *bufio.Reader:
 		return getUnderlyingReader(v)
 	default:
-		panic("can only to get the underlying reader of *bufiox.Reader or *bufio.Reader")
+		panic("can only get the underlying reader of *bufiox.Reader or *bufio.Reader")
 	}
 }
 
