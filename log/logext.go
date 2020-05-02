@@ -29,11 +29,17 @@ const (
 ) // [prefix][time][level][module][shortfile|longfile]
 
 const (
+	// Ldebug is a log output level that prints debug information.
 	Ldebug = iota
+	// Linfo is a log output level that prints prompting information.
 	Linfo
+	// Lwarn is a log output level that prints warning information.
 	Lwarn
+	// Lerror is a log output level that prints error information.
 	Lerror
+	// Lpanic is a log output level that prints error information.
 	Lpanic
+	// Lfatal is a log output level that prints fatal information.
 	Lfatal
 )
 
@@ -68,6 +74,7 @@ func New(out io.Writer, prefix string, flag int) *Logger {
 	return &Logger{out: out, prefix: prefix, Level: 1, flag: flag}
 }
 
+// Std *Logger.
 var Std = New(os.Stderr, "", Ldefault)
 
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width to avoid zero-padding.
@@ -107,7 +114,7 @@ func shortFile(file string, flag int) string {
 	return file
 }
 
-func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line int, lvl int, reqId string) {
+func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line int, lvl int, reqID string) {
 	if l.prefix != "" {
 		buf.WriteString(l.prefix)
 	}
@@ -135,9 +142,9 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 			buf.WriteByte(' ')
 		}
 	}
-	if reqId != "" {
+	if reqID != "" {
 		buf.WriteByte('[')
-		buf.WriteString(reqId)
+		buf.WriteString(reqID)
 		buf.WriteByte(']')
 	}
 	if l.flag&Llevel != 0 {
@@ -161,7 +168,7 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 // already a newline.  Calldepth is used to recover the PC and is
 // provided for generality, although at the moment on all pre-defined
 // paths it will be 2.
-func (l *Logger) Output(reqId string, lvl int, calldepth int, s string) error {
+func (l *Logger) Output(reqID string, lvl int, calldepth int, s string) error {
 	if lvl < l.Level {
 		return nil
 	}
@@ -183,7 +190,7 @@ func (l *Logger) Output(reqId string, lvl int, calldepth int, s string) error {
 	}
 	l.levelStats[lvl]++
 	l.buf.Reset()
-	l.formatHeader(&l.buf, now, file, line, lvl, reqId)
+	l.formatHeader(&l.buf, now, file, line, lvl, reqID)
 	l.buf.WriteString(s)
 	if len(s) > 0 && s[len(s)-1] != '\n' {
 		l.buf.WriteByte('\n')
@@ -210,6 +217,7 @@ func (l *Logger) Println(v ...interface{}) { l.Output("", Linfo, 2, fmt.Sprintln
 
 // -----------------------------------------
 
+// Debugf prints a debug information.
 func (l *Logger) Debugf(format string, v ...interface{}) {
 	if Ldebug < l.Level {
 		return
@@ -217,6 +225,7 @@ func (l *Logger) Debugf(format string, v ...interface{}) {
 	l.Output("", Ldebug, 2, fmt.Sprintf(format, v...))
 }
 
+// Debug prints a debug information.
 func (l *Logger) Debug(v ...interface{}) {
 	if Ldebug < l.Level {
 		return
@@ -226,6 +235,7 @@ func (l *Logger) Debug(v ...interface{}) {
 
 // -----------------------------------------
 
+// Infof prints a prompting information.
 func (l *Logger) Infof(format string, v ...interface{}) {
 	if Linfo < l.Level {
 		return
@@ -233,6 +243,7 @@ func (l *Logger) Infof(format string, v ...interface{}) {
 	l.Output("", Linfo, 2, fmt.Sprintf(format, v...))
 }
 
+// Info prints a prompting information.
 func (l *Logger) Info(v ...interface{}) {
 	if Linfo < l.Level {
 		return
@@ -242,22 +253,27 @@ func (l *Logger) Info(v ...interface{}) {
 
 // -----------------------------------------
 
+// Warnf prints a warning information.
 func (l *Logger) Warnf(format string, v ...interface{}) {
 	l.Output("", Lwarn, 2, fmt.Sprintf(format, v...))
 }
 
+// Warn prints a warning information.
 func (l *Logger) Warn(v ...interface{}) { l.Output("", Lwarn, 2, fmt.Sprintln(v...)) }
 
 // -----------------------------------------
 
+// Errorf prints an error information.
 func (l *Logger) Errorf(format string, v ...interface{}) {
 	l.Output("", Lerror, 2, fmt.Sprintf(format, v...))
 }
 
+// Error prints an error information.
 func (l *Logger) Error(v ...interface{}) { l.Output("", Lerror, 2, fmt.Sprintln(v...)) }
 
 // -----------------------------------------
 
+// Fatal prints an error information and exit app.
 func (l *Logger) Fatal(v ...interface{}) {
 	l.Output("", Lfatal, 2, fmt.Sprint(v...))
 	os.Exit(1)
@@ -300,6 +316,7 @@ func (l *Logger) Panicln(v ...interface{}) {
 
 // -----------------------------------------
 
+// Stack prints a stack trace of all goroutines.
 func (l *Logger) Stack(v ...interface{}) {
 	s := fmt.Sprint(v...)
 	s += "\n"
@@ -310,6 +327,7 @@ func (l *Logger) Stack(v ...interface{}) {
 	l.Output("", Lerror, 2, s)
 }
 
+// SingleStack prints a stack trace of the calling goroutines.
 func (l *Logger) SingleStack(v ...interface{}) {
 	s := fmt.Sprint(v...)
 	s += "\n"
@@ -322,6 +340,7 @@ func (l *Logger) SingleStack(v ...interface{}) {
 
 // -----------------------------------------
 
+// Stat func.
 func (l *Logger) Stat() (stats []int64) {
 	l.mu.Lock()
 	v := l.levelStats
@@ -391,12 +410,19 @@ func SetPrefix(prefix string) {
 	Std.SetPrefix(prefix)
 }
 
+// SetOutputLevel sets output level.
 func SetOutputLevel(lvl int) {
 	Std.SetOutputLevel(lvl)
 }
 
+// GetOutputLevel returns output level.
 func GetOutputLevel() int {
 	return Std.Level
+}
+
+// CanOutput returns to output a message or not.
+func CanOutput(lvl int) bool {
+	return lvl >= Std.Level
 }
 
 // -----------------------------------------
@@ -421,6 +447,7 @@ func Println(v ...interface{}) {
 
 // -----------------------------------------
 
+// Debugf prints a debug information.
 func Debugf(format string, v ...interface{}) {
 	if Ldebug < Std.Level {
 		return
@@ -428,6 +455,7 @@ func Debugf(format string, v ...interface{}) {
 	Std.Output("", Ldebug, 2, fmt.Sprintf(format, v...))
 }
 
+// Debug prints a debug information.
 func Debug(v ...interface{}) {
 	if Ldebug < Std.Level {
 		return
@@ -437,6 +465,7 @@ func Debug(v ...interface{}) {
 
 // -----------------------------------------
 
+// Infof prints a prompting information.
 func Infof(format string, v ...interface{}) {
 	if Linfo < Std.Level {
 		return
@@ -444,6 +473,7 @@ func Infof(format string, v ...interface{}) {
 	Std.Output("", Linfo, 2, fmt.Sprintf(format, v...))
 }
 
+// Info prints a prompting information.
 func Info(v ...interface{}) {
 	if Linfo < Std.Level {
 		return
@@ -453,18 +483,22 @@ func Info(v ...interface{}) {
 
 // -----------------------------------------
 
+// Warnf prints a warning information.
 func Warnf(format string, v ...interface{}) {
 	Std.Output("", Lwarn, 2, fmt.Sprintf(format, v...))
 }
 
+// Warn prints a warning information.
 func Warn(v ...interface{}) { Std.Output("", Lwarn, 2, fmt.Sprintln(v...)) }
 
 // -----------------------------------------
 
+// Errorf prints an error information.
 func Errorf(format string, v ...interface{}) {
 	Std.Output("", Lerror, 2, fmt.Sprintf(format, v...))
 }
 
+// Error prints an error information.
 func Error(v ...interface{}) { Std.Output("", Lerror, 2, fmt.Sprintln(v...)) }
 
 // -----------------------------------------
@@ -512,10 +546,12 @@ func Panicln(v ...interface{}) {
 
 // -----------------------------------------
 
+// Stack prints a stack trace of all goroutines.
 func Stack(v ...interface{}) {
 	Std.Stack(v...)
 }
 
+// SingleStack prints a stack trace of the calling goroutines.
 func SingleStack(v ...interface{}) {
 	Std.SingleStack(v...)
 }
