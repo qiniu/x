@@ -4,7 +4,7 @@ package cmdline
 
 const (
 	escTableBaseChar = '0'
-	escTableLen = ('z' - escTableBaseChar + 1)
+	escTableLen      = ('z' - escTableBaseChar + 1)
 )
 
 var escTable = []byte{
@@ -88,11 +88,10 @@ var escTable = []byte{
 
 func defaultEscape(c byte) string {
 
-	if c - escTableBaseChar < escTableLen {
-		c = escTable[c - escTableBaseChar]
+	if c-escTableBaseChar < escTableLen {
+		c = escTable[c-escTableBaseChar]
 	}
 	return string(c)
 }
 
 // ---------------------------------------------------------------------------
-

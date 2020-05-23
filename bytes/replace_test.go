@@ -51,4 +51,3 @@ func TestInsertAt(t *testing.T) {
 		t.Fatal("InsertAt failed:", ret)
 	}
 }
-

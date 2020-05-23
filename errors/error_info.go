@@ -61,10 +61,10 @@ func Err(err error) error {
 // --------------------------------------------------------------------
 
 type ErrorInfo struct {
-	err  error
-	why  error
-	cmd  []interface{}
-	pc   uintptr
+	err error
+	why error
+	cmd []interface{}
+	pc  uintptr
 }
 
 func shortFile(file string) string {
@@ -84,7 +84,7 @@ func Info(err error, cmd ...interface{}) *ErrorInfo {
 }
 
 func InfoEx(calldepth int, err error, cmd ...interface{}) *ErrorInfo {
-	pc, _, _, ok := runtime.Caller(calldepth+1)
+	pc, _, _, ok := runtime.Caller(calldepth + 1)
 	if !ok {
 		pc = 0
 	}
