@@ -1,3 +1,4 @@
+// Package errors provides errors stack tracking utilities.
 package errors
 
 import (
