@@ -33,20 +33,12 @@ func TestFrame(t *testing.T) {
 	if s1 != s1Exp || s2 != s2Exp || s3 != s3Exp {
 		t.Fatal("TestFrame failed:", s1, s2, s3)
 	}
-	if Unwrap(err2) != err1 {
-		t.Fatal("Unwrap(err2) != err1")
-	}
-	if !Is(err2, errNotFound) {
-		t.Fatal("!Is(err2, errNotFound)")
-	}
-	var err error
-	_ = As(err, &err)
 	_ = err2.NestedObject()
 	_ = err2.ErrorDetail()
 	_ = err2.AppendErrorDetail(nil)
 	_ = err2.SummaryErr()
 	_ = Detail(err2)
-	_ = Info(err)
-	_ = InfoEx(1, err)
+	_ = Info(err2)
+	_ = InfoEx(1, err2)
 	_ = err2.Detail(errNotFound)
 }
