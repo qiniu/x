@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"strconv"
 )
 
@@ -69,7 +70,41 @@ func errorDetail(b []byte, p *Frame) []byte {
 }
 
 func funcArgsDetail(b []byte, args []interface{}) []byte {
+	nlast := len(args) - 1
+	for i, arg := range args {
+		b = appendValue(b, arg)
+		if i != nlast {
+			b = append(b, ',', ' ')
+		}
+	}
 	return b
+}
+
+func appendValue(b []byte, arg interface{}) []byte {
+	if arg == nil {
+		return append(b, "nil"...)
+	}
+	v := reflect.ValueOf(arg)
+	kind := v.Kind()
+	if kind >= reflect.Bool && kind <= reflect.Complex128 {
+		return append(b, fmt.Sprint(arg)...)
+	}
+	if kind == reflect.String {
+		val := arg.(string)
+		if len(val) > 16 {
+			val = val[:16] + "..."
+		}
+		return strconv.AppendQuote(b, val)
+	}
+	if kind == reflect.Array {
+		return append(b, "Array"...)
+	}
+	if kind == reflect.Struct {
+		return append(b, "Struct"...)
+	}
+	val := v.Pointer()
+	b = append(b, '0', 'x')
+	return strconv.AppendInt(b, int64(val), 16)
 }
 
 // Unwrap provides compatibility for Go 1.13 error chains.

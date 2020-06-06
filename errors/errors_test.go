@@ -9,7 +9,7 @@ const (
 	s1Exp = `not found
 
 ===> errors stack:
-github.com/qiniu/x/errors.TestFrame()
+github.com/qiniu/x/errors.TestFrame("abcdefghijklmnop...", nil, 123, Array, Struct)
 	/Users/xsw/qiniu/x/errors/errors_test.go:11 errNotFound := New("not found")
 github.com/qiniu/x/errors.TestFrame()
 	/Users/xsw/qiniu/x/errors/errors_test.go:12 err1 := Frame(errNotFound, ...)
@@ -22,8 +22,13 @@ github.com/qiniu/x/errors.TestFrame()
 func TestFrame(t *testing.T) {
 	file := "/Users/xsw/qiniu/x/errors/errors_test.go"
 	errNotFound := New("not found")
-	err1 := NewFrame(errNotFound, `errNotFound := New("not found")`, file, 11, "github.com/qiniu/x/errors", "TestFrame", t)
-	err2 := NewFrame(err1, `err1 := Frame(errNotFound, ...)`, file, 12, "github.com/qiniu/x/errors", "TestFrame", t)
+	arg1 := "abcdefghijklmnopqrstuvwxyz"
+	arg2 := interface{}(nil)
+	arg3 := 123
+	arg4 := [...]int{1}
+	arg5 := struct{}{}
+	err1 := NewFrame(errNotFound, `errNotFound := New("not found")`, file, 11, "github.com/qiniu/x/errors", "TestFrame", arg1, arg2, arg3, arg4, arg5)
+	err2 := NewFrame(err1, `err1 := Frame(errNotFound, ...)`, file, 12, "github.com/qiniu/x/errors", "TestFrame")
 	s1 := fmt.Sprint(err2)
 	fmt.Println(s1)
 	s2 := fmt.Sprintf("%s", err2)
