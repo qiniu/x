@@ -10,11 +10,18 @@ github.com/qiniu/x
 
 [![Qiniu Logo](http://open.qiniudn.com/logo.png)](http://www.qiniu.com/)
 
+# mod
+```
+require github.com/qiniu/x/v8 v8.0.1
+```
+
 # 下载
+可能下载到老的版本
 
 ```
 go get github.com/qiniu/x
 ```
+
 
 # 使用文档
 

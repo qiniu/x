@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/qiniu/x/rpc"
+	"github.com/qiniu/x/v8/rpc"
 
 	. "context"
 )

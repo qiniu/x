@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/qiniu/x/mockhttp"
-	"github.com/qiniu/x/rpc"
+	"github.com/qiniu/x/v8/mockhttp"
+	"github.com/qiniu/x/v8/rpc"
 )
 
 // --------------------------------------------------------------------

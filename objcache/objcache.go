@@ -3,7 +3,7 @@ package objcache
 import (
 	"sync"
 
-	"github.com/qiniu/x/objcache/lru"
+	"github.com/qiniu/x/v8/objcache/lru"
 )
 
 // Key type.

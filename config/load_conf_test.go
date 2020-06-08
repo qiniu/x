@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/qiniu/x/config"
+	"github.com/qiniu/x/v8/config"
 )
 
 func TestTrimComments(t *testing.T) {

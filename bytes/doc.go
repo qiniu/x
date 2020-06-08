@@ -1,5 +1,5 @@
 /*
-包 github.com/qiniu/x/bytes 提供了 byte slice 相关的功能扩展
+包 github.com/qiniu/x/v8/bytes 提供了 byte slice 相关的功能扩展
 
 NewReader 创建一个 byte slice 的只读流：
 

@@ -6,7 +6,7 @@ import (
 	"flag"
 	"io/ioutil"
 
-	"github.com/qiniu/x/log"
+	"github.com/qiniu/x/v8/log"
 )
 
 var (

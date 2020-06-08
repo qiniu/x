@@ -1,8 +1,8 @@
 package x
 
 import (
-	_ "github.com/qiniu/x/bytes"
-	_ "github.com/qiniu/x/ctype"
-	_ "github.com/qiniu/x/rpc"
-	_ "github.com/qiniu/x/url"
+	_ "github.com/qiniu/x/v8/bytes"
+	_ "github.com/qiniu/x/v8/ctype"
+	_ "github.com/qiniu/x/v8/rpc"
+	_ "github.com/qiniu/x/v8/url"
 )

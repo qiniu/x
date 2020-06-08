@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/qiniu/x/reqid"
+	"github.com/qiniu/x/v8/reqid"
 
 	. "context"
 )

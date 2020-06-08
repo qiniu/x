@@ -6,8 +6,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/qiniu/x/log"
-	"github.com/qiniu/x/reqid"
+	"github.com/qiniu/x/v8/log"
+	"github.com/qiniu/x/v8/reqid"
 
 	. "context"
 )

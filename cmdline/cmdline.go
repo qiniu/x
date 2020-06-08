@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	. "github.com/qiniu/x/ctype"
+	. "github.com/qiniu/x/v8/ctype"
 )
 
 /* ---------------------------------------------------------------------------
