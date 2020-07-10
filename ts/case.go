@@ -56,7 +56,7 @@ type TestCase struct {
 	name string
 	msg  []byte
 	out  []reflect.Value
-	with reflect.Value
+	idx  int
 }
 
 // Call calls a function.
@@ -79,27 +79,31 @@ func (p *TestCase) Call(fn interface{}, args ...interface{}) *TestCase {
 		in[i] = reflect.ValueOf(arg)
 	}
 	p.out = vfn.Call(in)
-	if len(p.out) > 0 {
-		p.with = p.out[0]
-	}
+	p.idx = 0
 	return p
 }
 
-// With set current output value to check.
+// Next sets current output value to next output parameter.
+func (p *TestCase) Next() *TestCase {
+	p.idx++
+	return p
+}
+
+// With sets current output value to check.
 func (p *TestCase) With(i int) *TestCase {
-	p.with = p.out[i]
+	p.idx = i
 	return p
 }
 
 // Equal checks current output value.
 func (p *TestCase) Equal(v interface{}) *TestCase {
-	p.assertEq(p.with.Interface(), v)
+	p.assertEq(p.out[p.idx].Interface(), v)
 	return p
 }
 
 // PropEqual checks property of current output value.
 func (p *TestCase) PropEqual(prop string, v interface{}) *TestCase {
-	o := PropVal(p.with, prop)
+	o := PropVal(p.out[p.idx], prop)
 	p.assertEq(o.Interface(), v)
 	return p
 }
