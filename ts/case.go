@@ -15,6 +15,7 @@
 */
 
 // Package ts provides Go packages testing utilities.
+// See https://github.com/qiniu/x/wiki/How-to-write-a-TestCase
 package ts
 
 import (
