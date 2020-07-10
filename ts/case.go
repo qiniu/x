@@ -38,14 +38,19 @@ func New(t *testing.T) *Testing {
 	return &Testing{t: t}
 }
 
-// Case creates a test case.
-func (p *Testing) Case(name string) *TestCase {
+// New creates a test case.
+func (p *Testing) New(name string) *TestCase {
 	return &TestCase{name: name, t: p.t}
 }
 
 // Call creates a test case, and then calls a function.
 func (p *Testing) Call(fn interface{}, args ...interface{}) *TestCase {
-	return p.Case("").Call(fn, args...)
+	return p.New("").Call(fn, args...)
+}
+
+// Case creates a test case and sets its output parameters.
+func (p *Testing) Case(name string, result ...interface{}) *TestCase {
+	return p.New(name).Init(result...)
 }
 
 // ----------------------------------------------------------------------------
@@ -59,13 +64,30 @@ type TestCase struct {
 	idx  int
 }
 
-// Call calls a function.
-func (p *TestCase) Call(fn interface{}, args ...interface{}) *TestCase {
+func (p *TestCase) newMsg() []byte {
 	msg := make([]byte, 0, 16)
 	if p.name != "" {
 		msg = append(msg, p.name...)
 		msg = append(msg, ' ')
 	}
+	return msg
+}
+
+// Init sets output parameters.
+func (p *TestCase) Init(result ...interface{}) *TestCase {
+	out := make([]reflect.Value, len(result))
+	for i, ret := range result {
+		out[i] = reflect.ValueOf(ret)
+	}
+	p.msg = p.newMsg()
+	p.out = out
+	p.idx = 0
+	return p
+}
+
+// Call calls a function.
+func (p *TestCase) Call(fn interface{}, args ...interface{}) *TestCase {
+	msg := p.newMsg()
 	f := runtime.FuncForPC(reflect.ValueOf(fn).Pointer())
 	if f != nil {
 		msg = append(msg, f.Name()...)
@@ -110,16 +132,21 @@ func (p *TestCase) PropEqual(prop string, v interface{}) *TestCase {
 
 func (p *TestCase) assertEq(a, b interface{}) {
 	if !reflect.DeepEqual(a, b) {
-		p.t.Fatalf("%s:\nassertEq failed - %v, expected: %v\n", string(p.msg), a, b)
+		p.t.Fatalf("%s:\nassertEq failed: %v, expected: %v\n", string(p.msg), a, b)
 	}
 }
 
 // PropVal returns property value of an object.
 func PropVal(o reflect.Value, prop string) reflect.Value {
-	if o.Kind() == reflect.Struct {
+start:
+	switch o.Kind() {
+	case reflect.Struct:
 		if ret := o.FieldByName(prop); ret.IsValid() {
 			return ret
 		}
+	case reflect.Interface:
+		o = o.Elem()
+		goto start
 	}
 	if m := o.MethodByName(strings.Title(prop)); m.IsValid() {
 		out := m.Call([]reflect.Value{})
@@ -128,7 +155,7 @@ func PropVal(o reflect.Value, prop string) reflect.Value {
 		}
 		return out[0]
 	}
-	return reflect.Value{}
+	panic(o.Type().String() + " object hasn't property: " + prop)
 }
 
 // ----------------------------------------------------------------------------
