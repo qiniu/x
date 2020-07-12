@@ -8,7 +8,7 @@ github.com/qiniu/x
 [![Coverage Status](https://codecov.io/gh/qiniu/x/branch/master/graph/badge.svg)](https://codecov.io/gh/qiniu/x)
 [![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/qiniu/x)
 
-# How to build
+## How to build
 
 ```bash
 git clone git@github.com:qiniu/x.git
@@ -16,8 +16,8 @@ cd x
 go install -v ./...
 ```
 
-# Document
+## Document
 
-## Go packages testing utilities
+### Go packages testing utilities
 
 * See [github.com/qiniu/x/ts](https://pkg.go.dev/github.com/qiniu/x/ts?tab=doc)
