@@ -20,7 +20,6 @@ package ts
 
 import (
 	"reflect"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -61,6 +60,7 @@ type TestCase struct {
 	t    *testing.T
 	name string
 	msg  []byte
+	rcov interface{}
 	out  []reflect.Value
 	idx  int
 }
@@ -81,29 +81,31 @@ func (p *TestCase) Init(result ...interface{}) *TestCase {
 		out[i] = reflect.ValueOf(ret)
 	}
 	p.msg = p.newMsg()
+	p.rcov = nil
 	p.out = out
 	p.idx = 0
 	return p
 }
 
 // Call calls a function.
-func (p *TestCase) Call(fn interface{}, args ...interface{}) *TestCase {
-	msg := p.newMsg()
-	f := runtime.FuncForPC(reflect.ValueOf(fn).Pointer())
-	if f != nil {
-		msg = append(msg, f.Name()...)
-		msg = append(msg, '(')
-		msg = errors.ArgsDetail(msg, args)
-		p.msg = append(msg, ')')
-	}
-	vfn := reflect.ValueOf(fn)
+func (p *TestCase) Call(fn interface{}, args ...interface{}) (e *TestCase) {
+	e = p
+	e.msg = errors.CallDetail(e.newMsg(), fn, args...)
+	defer func() {
+		e.rcov = recover()
+	}()
+	e.rcov = nil
+	e.out = reflect.ValueOf(fn).Call(makeArgs(args))
+	e.idx = 0
+	return
+}
+
+func makeArgs(args []interface{}) []reflect.Value {
 	in := make([]reflect.Value, len(args))
 	for i, arg := range args {
 		in[i] = reflect.ValueOf(arg)
 	}
-	p.out = vfn.Call(in)
-	p.idx = 0
-	return p
+	return in
 }
 
 // Next sets current output value to next output parameter.
@@ -116,6 +118,31 @@ func (p *TestCase) Next() *TestCase {
 func (p *TestCase) With(i int) *TestCase {
 	p.idx = i
 	return p
+}
+
+// Panic checks if function call panics or not. Panic(v) means
+// function call panics with `v`. If v == nil, it means we don't
+// care any detail information about panic.
+func (p *TestCase) Panic(panicMsg ...interface{}) *TestCase {
+	assertPanic(p.t, p.msg, p.rcov, panicMsg...)
+	return p
+}
+
+func assertPanic(t *testing.T, msg []byte, rcov interface{}, panicMsg ...interface{}) {
+	if panicMsg == nil {
+		if rcov == nil {
+			return
+		}
+		t.Fatalf("%s:\nPanic checks: panic, expected: no panic\n", string(msg))
+	}
+	if rcov == nil {
+		t.Fatalf("%s:\nPanic checks: no panic, expected: panic\n", string(msg))
+	}
+	if v := panicMsg[0]; v != nil {
+		if !reflect.DeepEqual(rcov, v) {
+			t.Fatalf("%s:\nPanic checks: %v, expected: %v\n", string(msg), rcov, v)
+		}
+	}
 }
 
 // Equal checks current output value.

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"runtime"
 	"strconv"
 )
 
@@ -74,7 +75,7 @@ func errorDetail(b []byte, p *Frame) []byte {
 	b = append(b, '.')
 	b = append(b, p.Func...)
 	b = append(b, '(')
-	b = ArgsDetail(b, p.Args)
+	b = argsDetail(b, p.Args)
 	b = append(b, ")\n\t"...)
 	b = append(b, p.File...)
 	b = append(b, ':')
@@ -85,8 +86,7 @@ func errorDetail(b []byte, p *Frame) []byte {
 	return b
 }
 
-// ArgsDetail print args shortly.
-func ArgsDetail(b []byte, args []interface{}) []byte {
+func argsDetail(b []byte, args []interface{}) []byte {
 	nlast := len(args) - 1
 	for i, arg := range args {
 		b = appendValue(b, arg)
@@ -139,6 +139,20 @@ func (p *Frame) Format(s fmt.State, verb rune) {
 	case 'q':
 		fmt.Fprintf(s, "%q", Err(p.Err).Error())
 	}
+}
+
+// --------------------------------------------------------------------
+
+// CallDetail print a function call shortly.
+func CallDetail(msg []byte, fn interface{}, args ...interface{}) []byte {
+	f := runtime.FuncForPC(reflect.ValueOf(fn).Pointer())
+	if f != nil {
+		msg = append(msg, f.Name()...)
+		msg = append(msg, '(')
+		msg = argsDetail(msg, args)
+		msg = append(msg, ')')
+	}
+	return msg
 }
 
 // --------------------------------------------------------------------
