@@ -35,6 +35,7 @@ type Expecting struct {
 	cdata [2]*captureData
 	msg   []byte
 	rcov  interface{}
+	cstk  *stack
 }
 
 const (
@@ -66,7 +67,9 @@ func (p *Expecting) Call(fn interface{}, args ...interface{}) (e *Expecting) {
 	e = p
 	e.msg = errors.CallDetail(nil, fn, args...)
 	defer func() {
-		e.rcov = recover()
+		if e.rcov = recover(); e.rcov != nil {
+			e.cstk = callers()
+		}
 	}()
 	e.rcov = nil
 	reflect.ValueOf(fn).Call(makeArgs(args))
@@ -75,14 +78,22 @@ func (p *Expecting) Call(fn interface{}, args ...interface{}) (e *Expecting) {
 
 // Expect expects stdout ouput is equal to text.
 func (p *Expecting) Expect(text interface{}) *Expecting {
+	p.assertNotPanic()
 	p.cdata[0].expect(p.t, text)
 	return p
 }
 
 // ExpectErr expects stderr ouput is equal to text.
 func (p *Expecting) ExpectErr(text interface{}) *Expecting {
+	p.assertNotPanic()
 	p.cdata[1].expect(p.t, text)
 	return p
+}
+
+func (p *Expecting) assertNotPanic() {
+	if p.rcov != nil {
+		p.t.Fatalf("panic: %v\n%+v\n", p.rcov, p.cstk)
+	}
 }
 
 // Panic checks if function call panics or not. Panic(v) means

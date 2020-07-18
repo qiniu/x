@@ -61,6 +61,7 @@ type TestCase struct {
 	name string
 	msg  []byte
 	rcov interface{}
+	cstk *stack
 	out  []reflect.Value
 	idx  int
 }
@@ -92,7 +93,9 @@ func (p *TestCase) Call(fn interface{}, args ...interface{}) (e *TestCase) {
 	e = p
 	e.msg = errors.CallDetail(e.newMsg(), fn, args...)
 	defer func() {
-		e.rcov = recover()
+		if e.rcov = recover(); e.rcov != nil {
+			e.cstk = callers()
+		}
 	}()
 	e.rcov = nil
 	e.out = reflect.ValueOf(fn).Call(makeArgs(args))
@@ -145,14 +148,22 @@ func assertPanic(t *testing.T, msg []byte, rcov interface{}, panicMsg ...interfa
 	}
 }
 
+func (p *TestCase) assertNotPanic() {
+	if p.rcov != nil {
+		p.t.Fatalf("panic: %v\n%+v\n", p.rcov, p.cstk)
+	}
+}
+
 // Equal checks current output value.
 func (p *TestCase) Equal(v interface{}) *TestCase {
+	p.assertNotPanic()
 	p.assertEq(p.out[p.idx].Interface(), v)
 	return p
 }
 
 // PropEqual checks property of current output value.
 func (p *TestCase) PropEqual(prop string, v interface{}) *TestCase {
+	p.assertNotPanic()
 	o := PropVal(p.out[p.idx], prop)
 	p.assertEq(o.Interface(), v)
 	return p
