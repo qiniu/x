@@ -68,7 +68,7 @@ func (p *Expecting) Call(fn interface{}, args ...interface{}) (e *Expecting) {
 	e.msg = errors.CallDetail(nil, fn, args...)
 	defer func() {
 		if e.rcov = recover(); e.rcov != nil {
-			e.cstk = callers()
+			e.cstk = callers(3)
 		}
 	}()
 	e.rcov = nil
@@ -78,14 +78,12 @@ func (p *Expecting) Call(fn interface{}, args ...interface{}) (e *Expecting) {
 
 // Expect expects stdout ouput is equal to text.
 func (p *Expecting) Expect(text interface{}) *Expecting {
-	p.assertNotPanic()
 	p.cdata[0].expect(p.t, text)
 	return p
 }
 
 // ExpectErr expects stderr ouput is equal to text.
 func (p *Expecting) ExpectErr(text interface{}) *Expecting {
-	p.assertNotPanic()
 	p.cdata[1].expect(p.t, text)
 	return p
 }
@@ -100,7 +98,11 @@ func (p *Expecting) assertNotPanic() {
 // function call panics with `v`. If v == nil, it means we don't
 // care any detail information about panic.
 func (p *Expecting) Panic(panicMsg ...interface{}) *Expecting {
-	assertPanic(p.t, p.msg, p.rcov, panicMsg...)
+	if panicMsg == nil {
+		p.assertNotPanic()
+	} else {
+		assertPanic(p.t, p.msg, p.rcov, panicMsg[0])
+	}
 	return p
 }
 

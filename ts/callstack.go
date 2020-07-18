@@ -101,10 +101,10 @@ func (s *stack) Format(st fmt.State, verb rune) {
 	}
 }
 
-func callers() *stack {
+func callers(skip int) *stack {
 	const depth = 32
 	var pcs [depth]uintptr
-	n := runtime.Callers(3, pcs[:])
+	n := runtime.Callers(skip, pcs[:])
 	var st stack = pcs[0:n]
 	return &st
 }
