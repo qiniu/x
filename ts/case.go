@@ -94,7 +94,7 @@ func (p *TestCase) Call(fn interface{}, args ...interface{}) (e *TestCase) {
 	e.msg = errors.CallDetail(e.newMsg(), fn, args...)
 	defer func() {
 		if e.rcov = recover(); e.rcov != nil {
-			e.cstk = callers()
+			e.cstk = callers(3)
 		}
 	}()
 	e.rcov = nil
@@ -127,23 +127,21 @@ func (p *TestCase) With(i int) *TestCase {
 // function call panics with `v`. If v == nil, it means we don't
 // care any detail information about panic.
 func (p *TestCase) Panic(panicMsg ...interface{}) *TestCase {
-	assertPanic(p.t, p.msg, p.rcov, panicMsg...)
+	if panicMsg == nil {
+		p.assertNotPanic()
+	} else {
+		assertPanic(p.t, p.msg, p.rcov, panicMsg[0])
+	}
 	return p
 }
 
-func assertPanic(t *testing.T, msg []byte, rcov interface{}, panicMsg ...interface{}) {
-	if panicMsg == nil {
-		if rcov == nil {
-			return
-		}
-		t.Fatalf("%s:\nPanic checks: panic, expected: no panic\n", string(msg))
-	}
+func assertPanic(t *testing.T, msg []byte, rcov interface{}, panicMsg interface{}) {
 	if rcov == nil {
 		t.Fatalf("%s:\nPanic checks: no panic, expected: panic\n", string(msg))
 	}
-	if v := panicMsg[0]; v != nil {
-		if !reflect.DeepEqual(rcov, v) {
-			t.Fatalf("%s:\nPanic checks: %v, expected: %v\n", string(msg), rcov, v)
+	if panicMsg != nil {
+		if !reflect.DeepEqual(rcov, panicMsg) {
+			t.Fatalf("%s:\nPanic checks: %v, expected: %v\n", string(msg), rcov, panicMsg)
 		}
 	}
 }
