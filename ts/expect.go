@@ -88,7 +88,8 @@ func (p *Expecting) ExpectErr(text interface{}) *Expecting {
 	return p
 }
 
-func (p *Expecting) assertNotPanic() {
+// NoPanic indicates that no panic occurs.
+func (p *Expecting) NoPanic() {
 	if p.rcov != nil {
 		p.t.Fatalf("panic: %v\n%+v\n", p.rcov, p.cstk)
 	}
@@ -96,10 +97,11 @@ func (p *Expecting) assertNotPanic() {
 
 // Panic checks if function call panics or not. Panic(v) means
 // function call panics with `v`. If v == nil, it means we don't
-// care any detail information about panic.
+// care any detail information about panic. Panic() indicates
+// that no panic occurs.
 func (p *Expecting) Panic(panicMsg ...interface{}) *Expecting {
 	if panicMsg == nil {
-		p.assertNotPanic()
+		p.NoPanic()
 	} else {
 		assertPanic(p.t, p.msg, p.rcov, panicMsg[0])
 	}
