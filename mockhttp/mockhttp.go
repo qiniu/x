@@ -80,14 +80,14 @@ func (p *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	req.Body.Close()
 
 	ctlen := int64(-1)
-	if v := rw.HeaderMap.Get("Content-Length"); v != "" {
+	if v := rw.Header().Get("Content-Length"); v != "" {
 		ctlen, _ = strconv.ParseInt(v, 10, 64)
 	}
 
 	return &http.Response{
 		Status:           "",
 		StatusCode:       rw.Code,
-		Header:           rw.HeaderMap,
+		Header:           rw.Header(),
 		Body:             ioutil.NopCloser(rw.Body),
 		ContentLength:    ctlen,
 		TransferEncoding: nil,

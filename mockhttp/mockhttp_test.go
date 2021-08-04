@@ -1,6 +1,7 @@
 package mockhttp_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,7 +18,6 @@ import (
 // --------------------------------------------------------------------
 
 func reply(w http.ResponseWriter, code int, data interface{}) {
-
 	msg, _ := json.Marshal(data)
 	h := w.Header()
 	h.Set("Content-Length", strconv.Itoa(len(msg)))
@@ -66,10 +66,11 @@ func TestBasic(t *testing.T) {
 
 	mockhttp.ListenAndServe("foo.com", nil)
 
-	c := rpc.Client{mockhttp.DefaultClient}
+	ctx := context.TODO()
+	c := rpc.Client{Client: mockhttp.DefaultClient}
 	{
 		var foo FooRet
-		err := c.Call(nil, &foo, "POST", "http://foo.com/foo")
+		err := c.Call(ctx, &foo, "POST", "http://foo.com/foo")
 		if err != nil {
 			t.Fatal("call foo failed:", err)
 		}
@@ -80,7 +81,7 @@ func TestBasic(t *testing.T) {
 	}
 	{
 		var ret map[string]string
-		err := c.Call(nil, &ret, "POST", "http://foo.com/bar")
+		err := c.Call(ctx, &ret, "POST", "http://foo.com/bar")
 		if err != nil {
 			t.Fatal("call foo failed:", err)
 		}

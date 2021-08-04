@@ -118,8 +118,9 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 	if l.prefix != "" {
 		buf.WriteString(l.prefix)
 	}
-	if l.flag&(Ldate|Ltime|Lmicroseconds) != 0 {
-		if l.flag&Ldate != 0 {
+	flag := l.flag
+	if flag&(Ldate|Ltime|Lmicroseconds) != 0 {
+		if flag&Ldate != 0 {
 			year, month, day := t.Date()
 			itoa(buf, year, 4)
 			buf.WriteByte('/')
@@ -128,14 +129,14 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 			itoa(buf, day, 2)
 			buf.WriteByte(' ')
 		}
-		if l.flag&(Ltime|Lmicroseconds) != 0 {
+		if flag&(Ltime|Lmicroseconds) != 0 {
 			hour, min, sec := t.Clock()
 			itoa(buf, hour, 2)
 			buf.WriteByte(':')
 			itoa(buf, min, 2)
 			buf.WriteByte(':')
 			itoa(buf, sec, 2)
-			if l.flag&Lmicroseconds != 0 {
+			if flag&Lmicroseconds != 0 {
 				buf.WriteByte('.')
 				itoa(buf, t.Nanosecond()/1e3, 6)
 			}
@@ -147,18 +148,20 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 		buf.WriteString(reqID)
 		buf.WriteByte(']')
 	}
-	if l.flag&Llevel != 0 {
+	if flag&Llevel != 0 {
 		buf.WriteString(levels[lvl])
 	}
-	if l.flag&(Lshortfile|Llongfile) != 0 {
-		if l.flag&Lshortfile != 0 {
-			file = shortFile(file, l.flag)
+	if flag&(Lshortfile|Llongfile) != 0 {
+		if flag&Lshortfile != 0 {
+			file = shortFile(file, flag)
 		}
 		buf.WriteByte(' ')
 		buf.WriteString(file)
 		buf.WriteByte(':')
 		itoa(buf, line, -1)
 		buf.WriteString(": ")
+	} else if flag&Llevel != 0 {
+		buf.WriteByte(' ')
 	}
 }
 
