@@ -1,12 +1,11 @@
 github.com/qiniu/x
 ===============
 
-[![LICENSE](https://img.shields.io/github/license/qiniu/x.svg)](https://github.com/qiniu/x/blob/master/LICENSE)
 [![Build Status](https://github.com/qiniu/x/actions/workflows/go.yml/badge.svg)](https://github.com/qiniu/x/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/qiniu/x)](https://goreportcard.com/report/github.com/qiniu/x)
 [![GitHub release](https://img.shields.io/github/v/tag/qiniu/x.svg?label=release)](https://github.com/qiniu/x/releases)
 [![Coverage Status](https://codecov.io/gh/qiniu/x/branch/master/graph/badge.svg)](https://codecov.io/gh/qiniu/x)
-[![GoDoc](https://img.shields.io/badge/Godoc-reference-blue.svg)](https://godoc.org/github.com/qiniu/x)
+[![GoDoc](https://pkg.go.dev/badge/github.com/qiniu/x.svg)](https://pkg.go.dev/mod/github.com/qiniu/x)
 
 ## How to build
 
