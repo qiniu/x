@@ -45,14 +45,12 @@ type Transport struct {
 }
 
 func NewTransport() *Transport {
-
 	return &Transport{
 		route: make(map[string]http.Handler),
 	}
 }
 
 func (p *Transport) ListenAndServe(host string, h http.Handler) {
-
 	if h == nil {
 		h = http.DefaultServeMux
 	}
@@ -60,10 +58,9 @@ func (p *Transport) ListenAndServe(host string, h http.Handler) {
 }
 
 func (p *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-
 	h := p.route[req.URL.Host]
 	if h == nil {
-		log.Warn("Server not found:", req.Host)
+		log.Warn("Server not found:", req.Host, "-", req.URL.Host)
 		return nil, ErrServerNotFound
 	}
 
@@ -103,7 +100,6 @@ var DefaultTransport = NewTransport()
 var DefaultClient = &http.Client{Transport: DefaultTransport}
 
 func ListenAndServe(host string, h http.Handler) {
-
 	DefaultTransport.ListenAndServe(host, h)
 }
 
