@@ -36,7 +36,6 @@ var (
 // --------------------------------------------------------------------
 
 func NewRequest(method, url1 string, body io.Reader) (req *http.Request, err error) {
-
 	var host string
 
 	// url1 = "-H <Host> http://<ip>[:<port>]/<path>"
@@ -62,7 +61,6 @@ func NewRequest(method, url1 string, body io.Reader) (req *http.Request, err err
 }
 
 func (r Client) DoRequest(ctx Context, method, url string) (resp *http.Response, err error) {
-
 	req, err := NewRequest(method, url, nil)
 	if err != nil {
 		return
@@ -124,7 +122,6 @@ func (r Client) DoRequestWithJson(
 }
 
 func (r Client) Do(ctx Context, req *http.Request) (resp *http.Response, err error) {
-
 	if ctx == nil {
 		ctx = Background()
 	}
@@ -180,30 +177,25 @@ type ErrorInfo struct {
 }
 
 func (r *ErrorInfo) ErrorDetail() string {
-
 	msg, _ := json.Marshal(r)
 	return string(msg)
 }
 
 func (r *ErrorInfo) Error() string {
-
 	return r.Err
 }
 
 func (r *ErrorInfo) RpcError() (code, errno int, key, err string) {
-
 	return r.Code, r.Errno, r.Key, r.Err
 }
 
 func (r *ErrorInfo) HttpCode() int {
-
 	return r.Code
 }
 
 // --------------------------------------------------------------------
 
 func parseError(e *ErrorInfo, r io.Reader) {
-
 	body, err1 := ioutil.ReadAll(r)
 	if err1 != nil {
 		e.Err = err1.Error()
@@ -224,7 +216,6 @@ func parseError(e *ErrorInfo, r io.Reader) {
 }
 
 func ResponseError(resp *http.Response) (err error) {
-
 	e := &ErrorInfo{
 		Reqid: resp.Header.Get("X-Reqid"),
 		Code:  resp.StatusCode,
@@ -241,7 +232,6 @@ func ResponseError(resp *http.Response) (err error) {
 }
 
 func CallRet(ctx Context, ret interface{}, resp *http.Response) (err error) {
-
 	defer func() {
 		io.Copy(ioutil.Discard, resp.Body)
 		resp.Body.Close()
@@ -322,7 +312,6 @@ type nestedObjectGetter interface {
 }
 
 func getRequestCanceler(tp http.RoundTripper) (rc requestCanceler, ok bool) {
-
 	if rc, ok = tp.(requestCanceler); ok {
 		return
 	}
