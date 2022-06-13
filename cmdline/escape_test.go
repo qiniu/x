@@ -32,7 +32,7 @@ func TestEscape(t *testing.T) {
 func checkEscapeChar(t *testing.T, i, exp int) {
 
 	ret := defaultEscape(byte(i))
-	if ret != string(exp) {
+	if ret != string(rune(exp)) {
 		t.Fatal("escapeChar failed:", i)
 	}
 }
