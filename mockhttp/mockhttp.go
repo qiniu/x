@@ -41,18 +41,23 @@ func (r *mockServerRequestBody) Close() error {
 // type Transport
 
 type Transport struct {
-	route map[string]http.Handler
+	route      map[string]http.Handler
+	remoteAddr string
 }
 
 func NewTransport() *Transport {
-
 	return &Transport{
-		route: make(map[string]http.Handler),
+		route:      make(map[string]http.Handler),
+		remoteAddr: "127.0.0.1:13579",
 	}
 }
 
-func (p *Transport) ListenAndServe(host string, h http.Handler) {
+func (p *Transport) SetRemoteAddr(remoteAddr string) *Transport {
+	p.remoteAddr = remoteAddr
+	return p
+}
 
+func (p *Transport) ListenAndServe(host string, h http.Handler) {
 	if h == nil {
 		h = http.DefaultServeMux
 	}
@@ -60,17 +65,14 @@ func (p *Transport) ListenAndServe(host string, h http.Handler) {
 }
 
 func (p *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-
 	h := p.route[req.URL.Host]
 	if h == nil {
-		log.Warn("Server not found:", req.Host)
+		log.Warn("Server not found:", req.Host, "-", req.URL.Host)
 		return nil, ErrServerNotFound
 	}
 
 	cp := *req
-	cp.URL.Scheme = ""
-	cp.URL.Host = ""
-	cp.RemoteAddr = "127.0.0.1:8000"
+	cp.RemoteAddr = p.remoteAddr
 	cp.Body = &mockServerRequestBody{req.Body, false}
 	req = &cp
 
@@ -103,7 +105,6 @@ var DefaultTransport = NewTransport()
 var DefaultClient = &http.Client{Transport: DefaultTransport}
 
 func ListenAndServe(host string, h http.Handler) {
-
 	DefaultTransport.ListenAndServe(host, h)
 }
 
