@@ -57,7 +57,7 @@ type Frame struct {
 // NewWith creates a new error frame.
 func NewWith(err error, code string, n int, fn string, args ...interface{}) *Frame {
 	file, line := fileLine()
-	return &Frame{Err: err, Func: fn, Args: args, Code: code, File: file, Line: line - n}
+	return &Frame{Err: err, Func: fn, Args: args, Code: code, File: file, Line: line + n}
 }
 
 func fileLine() (file string, line int) {
