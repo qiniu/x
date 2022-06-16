@@ -47,7 +47,6 @@ func Err(err error) error {
 // Frame represents an error frame.
 type Frame struct {
 	Err  error
-	Pkg  string
 	Func string
 	Args []interface{}
 	Code string
@@ -56,9 +55,9 @@ type Frame struct {
 }
 
 // NewWith creates a new error frame.
-func NewWith(err error, n int, code, pkg, fn string, args ...interface{}) *Frame {
+func NewWith(err error, code string, n int, fn string, args ...interface{}) *Frame {
 	file, line := fileLine()
-	return &Frame{Err: err, Pkg: pkg, Func: fn, Args: args, Code: code, File: file, Line: line - n}
+	return &Frame{Err: err, Func: fn, Args: args, Code: code, File: file, Line: line + n}
 }
 
 func fileLine() (file string, line int) {
@@ -67,8 +66,8 @@ func fileLine() (file string, line int) {
 }
 
 // NewFrame creates a new error frame.
-func NewFrame(err error, code, file string, line int, pkg, fn string, args ...interface{}) *Frame {
-	return &Frame{Err: err, Pkg: pkg, Func: fn, Args: args, Code: code, File: file, Line: line}
+func NewFrame(err error, code, file string, line int, fn string, args ...interface{}) *Frame {
+	return &Frame{Err: err, Func: fn, Args: args, Code: code, File: file, Line: line}
 }
 
 func (p *Frame) Error() string {
@@ -82,8 +81,6 @@ func errorDetail(b []byte, p *Frame) []byte {
 		b = append(b, p.Err.Error()...)
 		b = append(b, "\n\n===> errors stack:\n"...)
 	}
-	b = append(b, p.Pkg...)
-	b = append(b, '.')
 	b = append(b, p.Func...)
 	b = append(b, '(')
 	b = argsDetail(b, p.Args)
