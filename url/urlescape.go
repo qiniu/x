@@ -47,7 +47,6 @@ func unhex(c byte) byte {
 // appearing in a URL string, according to RFC 3986.
 // When 'all' is true the full range of reserved characters are matched.
 func shouldEscape(c byte, mode Encoding) bool {
-
 	// §2.3 Unreserved characters (alphanum)
 	if 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z' || '0' <= c && c <= '9' {
 		return false
@@ -92,19 +91,16 @@ func shouldEscape(c byte, mode Encoding) bool {
 // %AB into the byte 0xAB and '+' into ' ' (space). It returns an error if
 // any % is not followed by two hexadecimal digits.
 func QueryUnescape(s string) (string, error) {
-
 	return UnescapeEx(s, EncodeQueryComponent)
 }
 
 func Unescape(s string) (string, error) {
-
 	return UnescapeEx(s, EncodePath)
 }
 
 // UnescapeEx unescapes a string; the mode specifies
 // which section of the URL string is being unescaped.
 func UnescapeEx(s string, mode Encoding) (string, error) {
-
 	// Count %, check that they're well-formed.
 	n := 0
 	hasPlus := false
@@ -160,17 +156,14 @@ func UnescapeEx(s string, mode Encoding) (string, error) {
 // QueryEscape escapes the string so it can be safely placed
 // inside a URL query.
 func QueryEscape(s string) string {
-
 	return EscapeEx(s, EncodeQueryComponent)
 }
 
 func Escape(s string) string {
-
 	return EscapeEx(s, EncodePath)
 }
 
 func EscapeEx(s string, mode Encoding) string {
-
 	spaceCount, hexCount := 0, 0
 	for i := 0; i < len(s); i++ {
 		c := s[i]

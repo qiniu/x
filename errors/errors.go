@@ -55,6 +55,17 @@ type Frame struct {
 	Line int
 }
 
+// NewWith creates a new error frame.
+func NewWith(err error, n int, code, pkg, fn string, args ...interface{}) *Frame {
+	file, line := fileLine()
+	return &Frame{Err: err, Pkg: pkg, Func: fn, Args: args, Code: code, File: file, Line: line - n}
+}
+
+func fileLine() (file string, line int) {
+	_, file, line, _ = runtime.Caller(2)
+	return
+}
+
 // NewFrame creates a new error frame.
 func NewFrame(err error, code, file string, line int, pkg, fn string, args ...interface{}) *Frame {
 	return &Frame{Err: err, Pkg: pkg, Func: fn, Args: args, Code: code, File: file, Line: line}
@@ -158,6 +169,8 @@ func CallDetail(msg []byte, fn interface{}, args ...interface{}) []byte {
 // --------------------------------------------------------------------
 
 // ErrorInfo is provided for backward compatibility
+//
+// Deprecated: Use Frame instead.
 type ErrorInfo = Frame
 
 // Detail is provided for backward compatibility
@@ -187,16 +200,22 @@ func (p *ErrorInfo) SummaryErr() error {
 }
 
 // Info is provided for backward compatibility
+//
+// Deprecated: Use NewWith instead.
 func Info(err error, cmd ...interface{}) *ErrorInfo {
 	return &Frame{Err: err, Args: cmd}
 }
 
 // InfoEx is provided for backward compatibility
+//
+// Deprecated: Use NewWith instead.
 func InfoEx(calldepth int, err error, cmd ...interface{}) *ErrorInfo {
 	return &Frame{Err: err, Args: cmd}
 }
 
 // Detail is provided for backward compatibility
+//
+// Deprecated: Use err.Error() instead.
 func Detail(err error) string {
 	return err.Error()
 }
