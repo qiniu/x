@@ -24,6 +24,7 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 )
 
 // --------------------------------------------------------------------
@@ -40,6 +41,57 @@ func Err(err error) error {
 		return Err(e.Err)
 	}
 	return err
+}
+
+// --------------------------------------------------------------------
+
+type NotFound struct {
+	Category string
+}
+
+func (p *NotFound) Error() string {
+	return fmt.Sprint(p.Category, " not found")
+}
+
+func IsNotFound(err error) bool {
+	for {
+		if e, ok := err.(interface{ Unwrap() error }); ok {
+			err = e.Unwrap()
+		} else {
+			_, ok = err.(*NotFound)
+			return ok
+		}
+	}
+}
+
+// --------------------------------------------------------------------
+
+type List []error
+
+func (p *List) Add(err error) {
+	*p = append(*p, err)
+}
+
+func (p List) Error() string {
+	switch len(p) {
+	case 1:
+		return p[0].Error()
+	case 0:
+		return ""
+	default:
+		s := make([]string, len(p))
+		for i, v := range p {
+			s[i] = v.Error()
+		}
+		return strings.Join(s, "\n")
+	}
+}
+
+func (p List) ToError() error {
+	if len(p) == 0 {
+		return nil
+	}
+	return p
 }
 
 // --------------------------------------------------------------------
@@ -116,8 +168,8 @@ func appendValue(b []byte, arg interface{}) []byte {
 	}
 	if kind == reflect.String {
 		val := arg.(string)
-		if len(val) > 16 {
-			val = val[:16] + "..."
+		if len(val) > 32 {
+			val = val[:16] + "..." + val[len(val)-16:]
 		}
 		return strconv.AppendQuote(b, val)
 	}
