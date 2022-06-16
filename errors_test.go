@@ -1,4 +1,4 @@
-package x
+package x_test
 
 import (
 	"strings"
@@ -17,8 +17,8 @@ func Foo() error {
 func TestNewWith(t *testing.T) {
 	err := Foo()
 	if err != nil {
-		err = errors.NewWith(err, 2, `Foo()`, "x", "Foo")
-		if strings.Index(err.Error(), "===> errors stack:\nx.Foo()\n\t") < 0 {
+		err = errors.NewWith(err, `Foo()`, 2, "x_test.Foo")
+		if strings.Index(err.Error(), "===> errors stack:\nx_test.Foo()\n\t") < 0 {
 			t.Fatal(err)
 		}
 	}
