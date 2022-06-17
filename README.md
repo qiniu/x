@@ -29,7 +29,7 @@ Extension of Go standard library
 <p>
   <a href="https://github.com/goplus/spx"><img width="100" src="https://github.com/goplus/FlappyCalf/raw/main/assets/FlappyCalf.jpg"></a>
 </p>
-<h3>spx - A Go+ 2D Game Engine for STEM education</h3>
+<h3>spx - A 2D Game Engine for STEM education</h3>
 </div>
 
 </td>
