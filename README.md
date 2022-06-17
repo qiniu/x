@@ -9,6 +9,8 @@ Extension of Go standard library
 
 ## Who is using it
 
+If you are using it and would like to let us know, you can submit a [Pull Request](https://github.com/qiniu/x/pulls).
+
 <table>
 <tr>
 <td width=33% valign=top>
