@@ -23,11 +23,27 @@ Extension of Go standard library
 
 </td>
 <td width=33% valign=top>
-* TODO
+
+<div align="center">
+<p></p>
+<p>
+  <a href="https://github.com/goplus/spx"><img width="100" src="https://github.com/goplus/FlappyCalf/raw/main/assets/FlappyCalf.jpg"></a>
+</p>
+<h3>spx - A Go+ 2D Game Engine for STEM education</h3>
+</div>
+
 </td>
 
 <td valign=top>
-* TODO
+
+<div align="center">
+<p></p>
+<p>
+  <a href="https://www.qiniu.com/"><img width="100" src="https://goplus.org/_next/static/media/qiniu_doll.d41a30a3.png"></a>
+</p>
+<h3>Qiniu Cloud Services</h3>
+</div>
+
 </td>
 
 </tr>
