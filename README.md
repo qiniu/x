@@ -1,4 +1,4 @@
-github.com/qiniu/x
+Extension of Go standard library
 ===============
 
 [![Build Status](https://github.com/qiniu/x/actions/workflows/go.yml/badge.svg)](https://github.com/qiniu/x/actions/workflows/go.yml)
@@ -7,16 +7,28 @@ github.com/qiniu/x
 [![Coverage Status](https://codecov.io/gh/qiniu/x/branch/master/graph/badge.svg)](https://codecov.io/gh/qiniu/x)
 [![GoDoc](https://pkg.go.dev/badge/github.com/qiniu/x.svg)](https://pkg.go.dev/mod/github.com/qiniu/x)
 
-## How to build
+## Who is using it
 
-```bash
-git clone git@github.com:qiniu/x.git
-cd x
-go install -v ./...
-```
+<table>
+<tr>
+<td width=33% valign=top>
 
-## Document
+<div align="center">
+<p></p>
+<p>
+  <a href="https://github.com/goplus/gop"><img width="80" src="https://goplus.org/favicon.svg"></a>
+</p>
+<h3>The Go+ Programming Language</h3>
+</div>
 
-### Go packages testing utilities
+</td>
+<td width=33% valign=top>
+* TODO
+</td>
 
-* See [github.com/qiniu/x/ts](https://pkg.go.dev/github.com/qiniu/x/ts?tab=doc)
+<td valign=top>
+* TODO
+</td>
+
+</tr>
+</table>
