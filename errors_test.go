@@ -17,6 +17,7 @@
 package x_test
 
 import (
+	"fmt"
 	"strings"
 	"syscall"
 	"testing"
@@ -37,6 +38,24 @@ func TestNewWith(t *testing.T) {
 		if strings.Index(err.Error(), "===> errors stack:\nx_test.Foo()\n\t") < 0 {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestErrList(t *testing.T) {
+	err1 := errors.New("error 1")
+	err2 := errors.New("error 2")
+	e1 := errors.NewWith(err1, ``, -2, "errors.New", "error 1")
+	e2 := errors.NewWith(err2, ``, -2, "errors.New", "error 2")
+	e := errors.List{e1, e2}
+	if v := fmt.Sprintf("%q", e); v != fmt.Sprintf("%q", e.Error()) {
+		t.Fatal(v)
+	}
+	if v := fmt.Sprintf("%v", e); v != fmt.Sprintf("%v", e.Error()) {
+		t.Fatal(v)
+	}
+	if v := fmt.Sprintf("%s", e); v != `error 1
+error 2` {
+		t.Fatal(v)
 	}
 }
 

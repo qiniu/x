@@ -43,8 +43,20 @@ func Err(err error) error {
 	return err
 }
 
+// Summary returns summary of specified error.
+func Summary(err error) string {
+	e, ok := err.(interface {
+		Summary() string
+	})
+	if !ok {
+		return err.Error()
+	}
+	return e.Summary()
+}
+
 // --------------------------------------------------------------------
 
+// NotFound is a generic NotFound error.
 type NotFound struct {
 	Category string
 }
@@ -74,25 +86,55 @@ func (p *List) Add(err error) {
 }
 
 func (p List) Error() string {
-	switch len(p) {
-	case 1:
-		return p[0].Error()
-	case 0:
-		return ""
-	default:
-		s := make([]string, len(p))
+	n := len(p)
+	if n >= 2 {
+		s := make([]string, n)
 		for i, v := range p {
 			s[i] = v.Error()
 		}
 		return strings.Join(s, "\n")
 	}
+	if n == 1 {
+		return p[0].Error()
+	}
+	return ""
+}
+
+func (p List) Summary() string {
+	n := len(p)
+	if n >= 2 {
+		s := make([]string, n)
+		for i, v := range p {
+			s[i] = Summary(v)
+		}
+		return strings.Join(s, "\n")
+	}
+	if n == 1 {
+		return Summary(p[0])
+	}
+	return ""
 }
 
 func (p List) ToError() error {
-	if len(p) == 0 {
+	switch len(p) {
+	case 1:
+		return p[0]
+	case 0:
 		return nil
 	}
 	return p
+}
+
+// Format is required by fmt.Formatter
+func (p List) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		io.WriteString(s, p.Error())
+	case 's':
+		io.WriteString(s, p.Summary())
+	case 'q':
+		fmt.Fprintf(s, "%q", p.Error())
+	}
 }
 
 // --------------------------------------------------------------------
@@ -125,6 +167,10 @@ func NewFrame(err error, code, file string, line int, fn string, args ...interfa
 
 func (p *Frame) Error() string {
 	return string(errorDetail(make([]byte, 0, 32), p))
+}
+
+func (p *Frame) Summary() string {
+	return Summary(p.Err)
 }
 
 func errorDetail(b []byte, p *Frame) []byte {
@@ -196,9 +242,9 @@ func (p *Frame) Format(s fmt.State, verb rune) {
 	case 'v':
 		io.WriteString(s, p.Error())
 	case 's':
-		io.WriteString(s, Err(p.Err).Error())
+		io.WriteString(s, p.Summary())
 	case 'q':
-		fmt.Fprintf(s, "%q", Err(p.Err).Error())
+		fmt.Fprintf(s, "%q", p.Error())
 	}
 }
 
