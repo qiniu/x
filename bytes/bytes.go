@@ -1,3 +1,19 @@
+/*
+ Copyright 2020 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package bytes
 
 import (
@@ -7,11 +23,22 @@ import (
 
 // ---------------------------------------------------
 
+// Unlike the standard library's bytes.Reader, this Reader supports Seek.
 type Reader struct {
 	b   []byte
 	off int
 }
 
+// NewReader create a readonly stream for byte slice:
+//
+//	 var slice []byte
+//	 ...
+//	 r := bytes.NewReader(slice)
+//	 ...
+//	 r.Seek(0, 0) // r.SeekToBegin()
+//	 ...
+//
+// Unlike the standard library's bytes.Reader, the returned Reader supports Seek.
 func NewReader(val []byte) *Reader {
 	return &Reader{val, 0}
 }
@@ -72,11 +99,20 @@ func (r *Reader) Close() (err error) {
 
 // ---------------------------------------------------
 
+// Writer implements a write stream with a limited capacity.
 type Writer struct {
 	b []byte
 	n int
 }
 
+// NewWriter NewWriter creates a write stream with a limited capacity:
+//
+//	 slice := make([]byte, 1024)
+//	 w := bytes.NewWriter(slice)
+//	 ...
+//	 writtenData := w.Bytes()
+//
+// If we write more than 1024 bytes of data to w, the excess data will be discarded.
 func NewWriter(buff []byte) *Writer {
 	return &Writer{buff, 0}
 }
@@ -99,6 +135,7 @@ func (p *Writer) Bytes() []byte {
 	return p.b[:p.n]
 }
 
+// Reset deletes all written data.
 func (p *Writer) Reset() {
 	p.n = 0
 }
@@ -109,6 +146,16 @@ type Buffer struct {
 	b []byte
 }
 
+// NewBuffer creates a random read/write memory file that supports ReadAt/WriteAt
+// methods instead of Read/Write:
+//
+//	 b := bytes.NewBuffer()
+//	 b.Truncate(100)
+//	 b.WriteAt([]byte("hello"), 100)
+//	 slice := make([]byte, 105)
+//	 n, err := b.ReadAt(slice, 0)
+//	 ...
+//
 func NewBuffer() *Buffer {
 	return new(Buffer)
 }

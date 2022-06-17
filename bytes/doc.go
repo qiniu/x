@@ -1,33 +1,18 @@
 /*
-包 github.com/qiniu/x/bytes 提供了 byte slice 相关的功能扩展
+ Copyright 2020 Qiniu Limited (qiniu.com)
 
-NewReader 创建一个 byte slice 的只读流：
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
 
-	var slice []byte
-	...
-	r := bytes.NewReader(slice)
-	...
-	r.Seek(0, 0) // r.SeekToBegin()
-	...
+     http://www.apache.org/licenses/LICENSE-2.0
 
-和标准库的 bytes.NewReader 不同的是，这里的 Reader 支持 Seek。
-
-NewWriter 创建一个有上限容量的写流：
-
-	slice := make([]byte, 1024)
-	w := bytes.NewWriter(slice)
-	...
-	writtenData := w.Bytes()
-
-如果我们向 w 里面写入超过 1024 字节的数据，那么多余的数据会被丢弃。
-
-NewBuffer 创建一个可随机读写的内存文件，支持 ReadAt/WriteAt 方法，而不是 Read/Write:
-
-	b := bytes.NewBuffer()
-	b.Truncate(100)
-	b.WriteAt([]byte("hello"), 100)
-	slice := make([]byte, 105)
-	n, err := b.ReadAt(slice, 0)
-	...
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
 */
+
+// Package bytes is a bytes extended libary.
 package bytes
