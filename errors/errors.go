@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Qiniu Limited (qiniu.com)
+ Copyright 2022 Qiniu Limited (qiniu.com)
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ func (p *NotFound) Error() string {
 	return fmt.Sprint(p.Category, " not found")
 }
 
+// IsNotFound unwraps err and checks it is a *NotFound object or not.
 func IsNotFound(err error) bool {
 	for {
 		if e, ok := err.(interface{ Unwrap() error }); ok {
