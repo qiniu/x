@@ -62,7 +62,7 @@ type NotFound struct {
 }
 
 func (p *NotFound) Error() string {
-	return fmt.Sprint(p.Category, " not found")
+	return p.Category + " not found"
 }
 
 // IsNotFound unwraps err and checks it is a *NotFound object or not.
