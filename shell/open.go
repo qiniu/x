@@ -5,8 +5,8 @@ import (
 	"runtime"
 )
 
-// https://stackoverflow.com/questions/39320371/how-start-web-server-to-open-page-in-browser-in-golang
-// open opens the specified URL in the default browser of the user.
+// Open opens the specified URL in the default browser of the user.
+// See https://stackoverflow.com/questions/39320371/how-start-web-server-to-open-page-in-browser-in-golang
 func Open(url string) error {
 	var cmd string
 	var args []string
