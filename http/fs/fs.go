@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"io"
 	"io/fs"
 	"net/http"
 	"os"
@@ -116,6 +117,70 @@ func (p *filesDataFS) Open(name string) (f http.File, err error) {
 
 func FilesWithContent(files ...string) http.FileSystem {
 	return &filesDataFS{files}
+}
+
+// -----------------------------------------------------------------------------------------
+
+type rootDir struct {
+}
+
+func (p rootDir) Name() string {
+	return "/"
+}
+
+func (p rootDir) Size() int64 {
+	return 0
+}
+
+func (p rootDir) Mode() fs.FileMode {
+	return fs.ModeDir
+}
+
+func (p rootDir) ModTime() time.Time {
+	return time.Now()
+}
+
+func (p rootDir) IsDir() bool {
+	return true
+}
+
+func (p rootDir) Sys() interface{} {
+	return nil
+}
+
+func (p rootDir) Close() error {
+	return nil
+}
+
+func (p rootDir) Write(b []byte) (n int, err error) {
+	return 0, io.ErrUnexpectedEOF
+}
+
+func (p rootDir) Read(b []byte) (n int, err error) {
+	return 0, io.EOF
+}
+
+func (p rootDir) Readdir(count int) ([]fs.FileInfo, error) {
+	return nil, io.EOF
+}
+
+func (p rootDir) Seek(offset int64, whence int) (int64, error) {
+	return 0, io.EOF
+}
+
+func (p rootDir) Stat() (fs.FileInfo, error) {
+	return rootDir{}, nil
+}
+
+func (p rootDir) Open(name string) (f http.File, err error) {
+	if name == "/" {
+		return rootDir{}, nil
+	}
+	return nil, os.ErrNotExist
+}
+
+func Root() http.FileSystem {
+	return rootDir{}
 }
 
 // -----------------------------------------------------------------------------------------
