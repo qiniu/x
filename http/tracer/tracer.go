@@ -9,30 +9,26 @@ import (
 // -------------------------------------------------------------------------------
 
 type teeResponseWriter struct {
-	w []http.ResponseWriter
+	a, b http.ResponseWriter
 }
 
 func (p *teeResponseWriter) Header() http.Header {
-	return p.w[0].Header()
+	return p.a.Header()
 }
 
 func (p *teeResponseWriter) Write(buf []byte) (n int, err error) {
-	n, err = p.w[0].Write(buf)
-	for _, w := range p.w[1:] {
-		w.Write(buf)
-	}
+	n, err = p.a.Write(buf)
+	p.b.Write(buf)
 	return
 }
 
 func (p *teeResponseWriter) WriteHeader(statusCode int) {
-	p.w[0].WriteHeader(statusCode)
-	for _, w := range p.w[1:] {
-		w.WriteHeader(statusCode)
-	}
+	p.a.WriteHeader(statusCode)
+	p.b.WriteHeader(statusCode)
 }
 
-func Tee(w ...http.ResponseWriter) http.ResponseWriter {
-	return &teeResponseWriter{w}
+func Tee(a, b http.ResponseWriter) http.ResponseWriter {
+	return &teeResponseWriter{a, b}
 }
 
 // -------------------------------------------------------------------------------
