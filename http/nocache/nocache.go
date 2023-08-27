@@ -1,6 +1,8 @@
 package nocache
 
 import (
+	"bufio"
+	"net"
 	"net/http"
 )
 
@@ -18,4 +20,8 @@ func New(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h.ServeHTTP(&respWriter{w}, r)
 	})
+}
+
+func (p *respWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return p.ResponseWriter.(http.Hijacker).Hijack()
 }

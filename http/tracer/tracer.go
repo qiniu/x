@@ -1,7 +1,9 @@
 package tracer
 
 import (
+	"bufio"
 	"log"
+	"net"
 	"net/http"
 	"time"
 )
@@ -25,6 +27,10 @@ func (p *teeResponseWriter) Write(buf []byte) (n int, err error) {
 func (p *teeResponseWriter) WriteHeader(statusCode int) {
 	p.a.WriteHeader(statusCode)
 	p.b.WriteHeader(statusCode)
+}
+
+func (p *teeResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return p.a.(http.Hijacker).Hijack()
 }
 
 func Tee(a, b http.ResponseWriter) http.ResponseWriter {
