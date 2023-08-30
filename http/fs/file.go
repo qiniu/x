@@ -36,6 +36,9 @@ func (p *dataFileInfo) Mode() fs.FileMode {
 }
 
 func (p *dataFileInfo) ModTime() time.Time {
+	if r, ok := p.r.(interface{ ModTime() time.Time }); ok {
+		return r.ModTime()
+	}
 	return time.Now()
 }
 
@@ -53,6 +56,9 @@ type dataFile struct {
 }
 
 func (p *dataFile) Close() error {
+	if r, ok := p.ContentReader.(io.Closer); ok {
+		return r.Close()
+	}
 	return nil
 }
 
@@ -64,6 +70,8 @@ func (p *dataFile) Stat() (fs.FileInfo, error) {
 	return &dataFileInfo{p.ContentReader, p.name}, nil
 }
 
+// File implements a http.File by a ContentReader which may implement
+// optional interface{ ModTime() time.Time } and io.Closer.
 func File(name string, r ContentReader) http.File {
 	return &dataFile{r, name}
 }
@@ -85,8 +93,32 @@ func (p *filesDataFS) Open(name string) (f http.File, err error) {
 	return nil, os.ErrNotExist
 }
 
+// FilesWithContent implenets a http.FileSystem by a list of file name and content.
 func FilesWithContent(files ...string) http.FileSystem {
 	return &filesDataFS{files}
+}
+
+// -----------------------------------------------------------------------------------------
+
+type filesFS struct {
+	files []string
+}
+
+func (p *filesFS) Open(name string) (f http.File, err error) {
+	files := p.files
+	name = name[1:]
+	for i := 0; i < len(files); i += 2 {
+		if files[i] == name {
+			f, err = os.Open(files[i+1])
+			return
+		}
+	}
+	return nil, os.ErrNotExist
+}
+
+// Files implenets a http.FileSystem by a list of file name and content file.
+func Files(files ...string) http.FileSystem {
+	return &filesFS{files}
 }
 
 // -----------------------------------------------------------------------------------------
