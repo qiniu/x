@@ -24,30 +24,9 @@ func (p *unionFS) Open(name string) (f http.File, err error) {
 	return nil, os.ErrNotExist
 }
 
+// Union merge a list of http.FileSystem into a union http.FileSystem object.
 func Union(fs ...http.FileSystem) http.FileSystem {
 	return &unionFS{fs}
-}
-
-// -----------------------------------------------------------------------------------------
-
-type filesFS struct {
-	files []string
-}
-
-func (p *filesFS) Open(name string) (f http.File, err error) {
-	files := p.files
-	name = name[1:]
-	for i := 0; i < len(files); i += 2 {
-		if files[i] == name {
-			f, err = os.Open(files[i+1])
-			return
-		}
-	}
-	return nil, os.ErrNotExist
-}
-
-func Files(files ...string) http.FileSystem {
-	return &filesFS{files}
 }
 
 // -----------------------------------------------------------------------------------------
@@ -110,6 +89,7 @@ func (p rootDir) Open(name string) (f http.File, err error) {
 	return nil, os.ErrNotExist
 }
 
+// Root implents a http.FileSystem that only have a root directory.
 func Root() http.FileSystem {
 	return rootDir{}
 }

@@ -3,7 +3,6 @@ package fs
 import (
 	"bytes"
 	"io"
-	"io/fs"
 	"net/http"
 	"path"
 	"time"
@@ -11,53 +10,14 @@ import (
 
 // -----------------------------------------------------------------------------------------
 
-type httpFileInfo struct {
-	r    *http.Response
-	name string
-}
-
-func (p *httpFileInfo) Name() string {
-	return path.Base(p.name)
-}
-
-func (p *httpFileInfo) Size() int64 {
-	return p.r.ContentLength
-}
-
-func (p *httpFileInfo) Mode() fs.FileMode {
-	return 0
-}
-
-func (p *httpFileInfo) ModTime() time.Time {
-	if lm := p.r.Header.Get("Last-Modified"); lm != "" {
-		if t, err := http.ParseTime(lm); err == nil {
-			return t
-		}
-	}
-	return time.Now()
-}
-
-func (p *httpFileInfo) IsDir() bool {
-	return false
-}
-
-func (p *httpFileInfo) Sys() interface{} {
-	return nil
-}
-
-type httpFile struct {
+type httpContent struct {
 	file io.ReadCloser
 	resp *http.Response
 	b    bytes.Buffer
 	br   *bytes.Reader
-	name string
 }
 
-func (p *httpFile) Close() error {
-	return p.file.Close()
-}
-
-func (p *httpFile) Read(b []byte) (n int, err error) {
+func (p *httpContent) Read(b []byte) (n int, err error) {
 	if p.br == nil {
 		n, err = p.file.Read(b)
 		p.b.Write(b[:n])
@@ -67,7 +27,7 @@ func (p *httpFile) Read(b []byte) (n int, err error) {
 	return
 }
 
-func (p *httpFile) Seek(offset int64, whence int) (int64, error) {
+func (p *httpContent) Seek(offset int64, whence int) (int64, error) {
 	if p.br == nil {
 		off := p.b.Len()
 		_, err := io.Copy(&p.b, p.file)
@@ -80,16 +40,26 @@ func (p *httpFile) Seek(offset int64, whence int) (int64, error) {
 	return p.br.Seek(offset, whence)
 }
 
-func (p *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, nil
+func (p *httpContent) Size() int64 {
+	return p.resp.ContentLength
 }
 
-func (p *httpFile) Stat() (fs.FileInfo, error) {
-	return &httpFileInfo{p.resp, p.name}, nil
+func (p *httpContent) Close() error {
+	return p.file.Close()
 }
 
+func (p *httpContent) ModTime() time.Time {
+	if lm := p.resp.Header.Get("Last-Modified"); lm != "" {
+		if t, err := http.ParseTime(lm); err == nil {
+			return t
+		}
+	}
+	return time.Now()
+}
+
+// HttpFile implements a http.File by a http.Response object.
 func HttpFile(name string, resp *http.Response) http.File {
-	return &httpFile{file: resp.Body, resp: resp, name: name}
+	return File(name, &httpContent{file: resp.Body, resp: resp})
 }
 
 // -----------------------------------------------------------------------------------------
@@ -112,6 +82,7 @@ func (p *fsWithTracker) Open(name string) (file http.File, err error) {
 	return HttpFile(name, resp), nil
 }
 
+// WithTracker implements a http.FileSystem by pactching large file access like git lfs.
 func WithTracker(fs http.FileSystem, root string, exts ...string) http.FileSystem {
 	m := make(map[string]struct{}, len(exts))
 	for _, ext := range exts {
