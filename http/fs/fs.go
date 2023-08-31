@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"time"
 )
 
@@ -27,6 +28,35 @@ func (p *unionFS) Open(name string) (f http.File, err error) {
 // Union merge a list of http.FileSystem into a union http.FileSystem object.
 func Union(fs ...http.FileSystem) http.FileSystem {
 	return &unionFS{fs}
+}
+
+// -----------------------------------------------------------------------------------------
+
+type fsPlugins struct {
+	fs   http.FileSystem
+	exts map[string]Opener
+}
+
+func (p *fsPlugins) Open(name string) (http.File, error) {
+	ext := path.Ext(name)
+	if fn, ok := p.exts[ext]; ok {
+		return fn(p.fs, name)
+	}
+	return p.fs.Open(name)
+}
+
+type Opener = func(fs http.FileSystem, name string) (file http.File, err error)
+
+// Plugins implements a filesystem with plugins by specified (ext string, plugin Opener) pairs.
+func Plugins(fs http.FileSystem, plugins ...interface{}) http.FileSystem {
+	n := len(plugins)
+	exts := make(map[string]Opener, n/2)
+	for i := 0; i < n; i += 2 {
+		ext := plugins[i].(string)
+		fn := plugins[i+1].(Opener)
+		exts[ext] = fn
+	}
+	return &fsPlugins{fs, exts}
 }
 
 // -----------------------------------------------------------------------------------------
@@ -70,6 +100,10 @@ func (p rootDir) Read(b []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
+func (p rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
+	return nil, io.EOF
+}
+
 func (p rootDir) Readdir(count int) ([]fs.FileInfo, error) {
 	return nil, io.EOF
 }
@@ -89,7 +123,7 @@ func (p rootDir) Open(name string) (f http.File, err error) {
 	return nil, os.ErrNotExist
 }
 
-// Root implents a http.FileSystem that only have a root directory.
+// Root implements a http.FileSystem that only have a root directory.
 func Root() http.FileSystem {
 	return rootDir{}
 }

@@ -62,8 +62,12 @@ func (p *dataFile) Close() error {
 	return nil
 }
 
+func (p *dataFile) ReadDir(n int) ([]fs.DirEntry, error) {
+	return nil, os.ErrInvalid
+}
+
 func (p *dataFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, nil
+	return nil, os.ErrInvalid
 }
 
 func (p *dataFile) Stat() (fs.FileInfo, error) {
@@ -93,7 +97,7 @@ func (p *filesDataFS) Open(name string) (f http.File, err error) {
 	return nil, os.ErrNotExist
 }
 
-// FilesWithContent implenets a http.FileSystem by a list of file name and content.
+// FilesWithContent implements a http.FileSystem by a list of file name and content.
 func FilesWithContent(files ...string) http.FileSystem {
 	return &filesDataFS{files}
 }
@@ -116,7 +120,7 @@ func (p *filesFS) Open(name string) (f http.File, err error) {
 	return nil, os.ErrNotExist
 }
 
-// Files implenets a http.FileSystem by a list of file name and content file.
+// Files implements a http.FileSystem by a list of file name and content file.
 func Files(files ...string) http.FileSystem {
 	return &filesFS{files}
 }
