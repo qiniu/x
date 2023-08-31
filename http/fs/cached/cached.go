@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type Remote interface {
@@ -21,9 +20,6 @@ type fsCached struct {
 }
 
 func (p *fsCached) Open(name string) (f http.File, err error) {
-	if !strings.HasPrefix(name, "/") { // name should start with "/"
-		name = "/" + name
-	}
 	remote, local := p.remote, p.local
 	localFile := filepath.Join(local, name)
 	fi, err := remote.Lstat(localFile)
