@@ -5,14 +5,14 @@ import (
 	"path"
 )
 
-type handler = func(w http.ResponseWriter, r *http.Request, next http.Handler)
+type Handler = func(w http.ResponseWriter, r *http.Request, next http.Handler)
 
 func New(h http.Handler, plugins ...interface{}) http.Handler {
 	n := len(plugins)
-	exts := make(map[string]handler, n/2)
+	exts := make(map[string]Handler, n/2)
 	for i := 0; i < n; i += 2 {
 		ext := plugins[i].(string)
-		fn := plugins[i+1].(handler)
+		fn := plugins[i+1].(Handler)
 		exts[ext] = fn
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

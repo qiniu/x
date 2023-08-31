@@ -3,6 +3,7 @@ package fs
 import (
 	"bytes"
 	"io"
+	"io/fs"
 	"net/http"
 	"path"
 	"time"
@@ -10,14 +11,22 @@ import (
 
 // -----------------------------------------------------------------------------------------
 
-type httpContent struct {
+type stream struct {
 	file io.ReadCloser
-	resp *http.Response
 	b    bytes.Buffer
 	br   *bytes.Reader
+	name string
 }
 
-func (p *httpContent) Read(b []byte) (n int, err error) {
+func (p *stream) Readdir(count int) ([]fs.FileInfo, error) {
+	return nil, nil
+}
+
+func (p *stream) Stat() (fs.FileInfo, error) {
+	return &dataFileInfo{p, p.name}, nil
+}
+
+func (p *stream) Read(b []byte) (n int, err error) {
 	if p.br == nil {
 		n, err = p.file.Read(b)
 		p.b.Write(b[:n])
@@ -27,7 +36,7 @@ func (p *httpContent) Read(b []byte) (n int, err error) {
 	return
 }
 
-func (p *httpContent) Seek(offset int64, whence int) (int64, error) {
+func (p *stream) Seek(offset int64, whence int) (int64, error) {
 	if p.br == nil {
 		off := p.b.Len()
 		_, err := io.Copy(&p.b, p.file)
@@ -40,15 +49,79 @@ func (p *httpContent) Seek(offset int64, whence int) (int64, error) {
 	return p.br.Seek(offset, whence)
 }
 
-func (p *httpContent) Size() int64 {
-	return p.resp.ContentLength
+func (p *stream) Size() int64 {
+	if r, ok := p.file.(interface{ Size() int64 }); ok {
+		return r.Size()
+	}
+	return -1
 }
 
-func (p *httpContent) Close() error {
+func (p *stream) Close() error {
 	return p.file.Close()
 }
 
-func (p *httpContent) ModTime() time.Time {
+func (p *stream) ModTime() time.Time {
+	if r, ok := p.file.(interface{ ModTime() time.Time }); ok {
+		return r.ModTime()
+	}
+	return time.Now()
+}
+
+// SequenceFile implements a http.File by a io.ReadCloser object.
+func SequenceFile(name string, body io.ReadCloser) http.File {
+	return &stream{file: body}
+}
+
+// -----------------------------------------------------------------------------------------
+
+type httpFile struct {
+	file io.ReadCloser
+	resp *http.Response
+	b    bytes.Buffer
+	br   *bytes.Reader
+	name string
+}
+
+func (p *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
+	return nil, nil
+}
+
+func (p *httpFile) Stat() (fs.FileInfo, error) {
+	return &dataFileInfo{p, p.name}, nil
+}
+
+func (p *httpFile) Read(b []byte) (n int, err error) {
+	if p.br == nil {
+		n, err = p.file.Read(b)
+		p.b.Write(b[:n])
+	} else {
+		n, err = p.br.Read(b)
+	}
+	return
+}
+
+func (p *httpFile) Seek(offset int64, whence int) (int64, error) {
+	if p.br == nil {
+		off := p.b.Len()
+		_, err := io.Copy(&p.b, p.file)
+		if err != nil {
+			return 0, err
+		}
+		p.br = bytes.NewReader(p.b.Bytes())
+		p.br.Seek(int64(off), io.SeekStart)
+	}
+	return p.br.Seek(offset, whence)
+}
+
+func (p *httpFile) Size() int64 {
+	return p.resp.ContentLength
+}
+
+func (p *httpFile) Close() error {
+	return p.file.Close()
+}
+
+func (p *httpFile) ModTime() time.Time {
 	if lm := p.resp.Header.Get("Last-Modified"); lm != "" {
 		if t, err := http.ParseTime(lm); err == nil {
 			return t
@@ -59,7 +132,7 @@ func (p *httpContent) ModTime() time.Time {
 
 // HttpFile implements a http.File by a http.Response object.
 func HttpFile(name string, resp *http.Response) http.File {
-	return File(name, &httpContent{file: resp.Body, resp: resp})
+	return &httpFile{file: resp.Body, resp: resp, name: name}
 }
 
 // -----------------------------------------------------------------------------------------
