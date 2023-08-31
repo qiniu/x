@@ -11,6 +11,23 @@ import (
 	"time"
 )
 
+// Download downloads from a http.File.
+func Download(destFile string, src http.File) (err error) {
+	f, err := os.Create(destFile)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	if tr, ok := src.(interface{ TryReader() *bytes.Reader }); ok {
+		if r := tr.TryReader(); r != nil {
+			_, err = r.WriteTo(f)
+			return
+		}
+	}
+	_, err = io.Copy(f, src)
+	return
+}
+
 // -----------------------------------------------------------------------------------------
 
 type stream struct {
@@ -18,6 +35,11 @@ type stream struct {
 	b    bytes.Buffer
 	br   *bytes.Reader
 	name string
+}
+
+// TryReader is provided for fast copy. See function `Download`.
+func (p *stream) TryReader() *bytes.Reader {
+	return p.br
 }
 
 func (p *stream) ReadDir(n int) ([]fs.DirEntry, error) {
@@ -88,7 +110,7 @@ type httpFile struct {
 	name string
 }
 
-// TryReader is provided for fast copy. See github.com/x/fs/cached/lfs.download
+// TryReader is provided for fast copy. See function `Download`.
 func (p *httpFile) TryReader() *bytes.Reader {
 	return p.br
 }

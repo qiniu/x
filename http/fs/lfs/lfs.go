@@ -1,7 +1,6 @@
 package lfs
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -30,7 +29,7 @@ func (p *cachedCloser) Close() error {
 	if err == nil {
 		localFile := p.localFile
 		localFileDownloading := localFile + ".download" // TODO: use tempfile
-		err = download(localFileDownloading, file)
+		err = xfs.Download(localFileDownloading, file)
 		if err == nil {
 			err = os.Rename(localFileDownloading, localFile)
 			if err != nil {
@@ -39,22 +38,6 @@ func (p *cachedCloser) Close() error {
 		}
 	}
 	return p.ReadCloser.Close()
-}
-
-func download(destFile string, src http.File) (err error) {
-	f, err := os.Create(destFile)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	if tr, ok := src.(interface{ TryReader() *bytes.Reader }); ok {
-		if r := tr.TryReader(); r != nil {
-			_, err = r.WriteTo(f)
-			return
-		}
-	}
-	_, err = io.Copy(f, src)
-	return
 }
 
 // -----------------------------------------------------------------------------------------
