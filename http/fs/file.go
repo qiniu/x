@@ -62,8 +62,12 @@ func (p *dataFile) Close() error {
 	return nil
 }
 
+func (p *dataFile) ReadDir(n int) ([]fs.DirEntry, error) {
+	return nil, os.ErrInvalid
+}
+
 func (p *dataFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, nil
+	return nil, os.ErrInvalid
 }
 
 func (p *dataFile) Stat() (fs.FileInfo, error) {

@@ -2,9 +2,11 @@ package fs
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
+	"os"
 	"path"
 	"time"
 )
@@ -18,8 +20,12 @@ type stream struct {
 	name string
 }
 
+func (p *stream) ReadDir(n int) ([]fs.DirEntry, error) {
+	return nil, os.ErrInvalid
+}
+
 func (p *stream) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, nil
+	return nil, os.ErrInvalid
 }
 
 func (p *stream) Stat() (fs.FileInfo, error) {
@@ -82,8 +88,17 @@ type httpFile struct {
 	name string
 }
 
+// TryReader is provided for fast copy. See github.com/x/fs/cached/lfs.download
+func (p *httpFile) TryReader() *bytes.Reader {
+	return p.br
+}
+
+func (p *httpFile) ReadDir(n int) ([]fs.DirEntry, error) {
+	return nil, os.ErrInvalid
+}
+
 func (p *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, nil
+	return nil, os.ErrInvalid
 }
 
 func (p *httpFile) Stat() (fs.FileInfo, error) {
@@ -151,6 +166,13 @@ func (p *fsWithTracker) Open(name string) (file http.File, err error) {
 	resp, err := http.Get(p.root + name)
 	if err != nil {
 		return
+	}
+	if resp.StatusCode >= 400 {
+		url := "url"
+		if req := resp.Request; req != nil {
+			url = req.URL.String()
+		}
+		return nil, fmt.Errorf("http.Get %s error: status %d (%s)", url, resp.StatusCode, resp.Status)
 	}
 	return HttpFile(name, resp), nil
 }

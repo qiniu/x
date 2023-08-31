@@ -100,6 +100,10 @@ func (p rootDir) Read(b []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
+func (p rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
+	return nil, io.EOF
+}
+
 func (p rootDir) Readdir(count int) ([]fs.FileInfo, error) {
 	return nil, io.EOF
 }
