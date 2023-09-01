@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/qiniu/x/humanize"
 )
 
 // -------------------------------------------------------------------------------
@@ -41,7 +43,7 @@ func Tee(a, b http.ResponseWriter) http.ResponseWriter {
 
 type CodeRecorder struct {
 	Code  int
-	Bytes int
+	Bytes int64
 }
 
 func (p *CodeRecorder) Header() http.Header {
@@ -49,7 +51,7 @@ func (p *CodeRecorder) Header() http.Header {
 }
 
 func (p *CodeRecorder) Write(buf []byte) (n int, err error) {
-	p.Bytes += len(buf)
+	p.Bytes += int64(len(buf))
 	return
 }
 
@@ -71,7 +73,8 @@ func New(h http.Handler) http.Handler {
 		start := time.Now()
 		h.ServeHTTP(tee, r)
 		dur := time.Since(start)
-		log.Printf("Returned %d of %s %v with %d bytes in %d ms\n", recorder.Code, r.Method, r.URL, recorder.Bytes, dur.Milliseconds())
+		bytes := humanize.Comma(recorder.Bytes)
+		log.Printf("Returned %d of %s %v with %s bytes in %d ms\n", recorder.Code, r.Method, r.URL, bytes, dur.Milliseconds())
 	})
 }
 
