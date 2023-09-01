@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -200,7 +201,7 @@ func (r fsHttp) Open(name string) (file http.File, err error) {
 
 // Http implements a http.FileSystem by http.Get join(urlBase, name).
 func Http(urlBase string) http.FileSystem {
-	return fsHttp{urlBase}
+	return fsHttp{strings.TrimSuffix(urlBase, "/")}
 }
 
 // -----------------------------------------------------------------------------------------
@@ -225,7 +226,7 @@ func WithTracker(fs http.FileSystem, urlBase string, exts ...string) http.FileSy
 	for _, ext := range exts {
 		m[ext] = struct{}{}
 	}
-	return &fsWithTracker{fs, m, urlBase}
+	return &fsWithTracker{fs, m, strings.TrimSuffix(urlBase, "/")}
 }
 
 // -----------------------------------------------------------------------------------------
