@@ -66,6 +66,10 @@ func NewCodeRecorder() *CodeRecorder {
 // -------------------------------------------------------------------------------
 
 func New(h http.Handler) http.Handler {
+	return NewWith(h, log.Default())
+}
+
+func NewWith(h http.Handler, log *log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		recorder := NewCodeRecorder()
 		tee := Tee(w, recorder)
