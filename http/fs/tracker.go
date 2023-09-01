@@ -172,20 +172,9 @@ func HttpFile(name string, resp *http.Response) http.File {
 	return &httpFile{file: resp.Body, resp: resp, name: name}
 }
 
-// -----------------------------------------------------------------------------------------
-
-type fsWithTracker struct {
-	fs   http.FileSystem
-	exts map[string]struct{}
-	root string
-}
-
-func (p *fsWithTracker) Open(name string) (file http.File, err error) {
-	ext := path.Ext(name)
-	if _, ok := p.exts[ext]; !ok {
-		return p.fs.Open(name)
-	}
-	resp, err := http.Get(p.root + name)
+// HttpOpen opens a http.File from an url.
+func HttpOpen(url string) (file http.File, err error) {
+	resp, err := http.Get(url)
 	if err != nil {
 		return
 	}
@@ -196,16 +185,47 @@ func (p *fsWithTracker) Open(name string) (file http.File, err error) {
 		}
 		return nil, fmt.Errorf("http.Get %s error: status %d (%s)", url, resp.StatusCode, resp.Status)
 	}
-	return HttpFile(name, resp), nil
+	return HttpFile(resp.Request.URL.Path, resp), nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+type fsHttp struct {
+	urlBase string
+}
+
+func (r fsHttp) Open(name string) (file http.File, err error) {
+	return HttpOpen(r.urlBase + name)
+}
+
+// Http implements a http.FileSystem by http.Get join(urlBase, name).
+func Http(urlBase string) http.FileSystem {
+	return fsHttp{urlBase}
+}
+
+// -----------------------------------------------------------------------------------------
+
+type fsWithTracker struct {
+	fs      http.FileSystem
+	exts    map[string]struct{}
+	urlBase string
+}
+
+func (p *fsWithTracker) Open(name string) (file http.File, err error) {
+	ext := path.Ext(name)
+	if _, ok := p.exts[ext]; !ok {
+		return p.fs.Open(name)
+	}
+	return HttpOpen(p.urlBase + name)
 }
 
 // WithTracker implements a http.FileSystem by pactching large file access like git lfs.
-func WithTracker(fs http.FileSystem, root string, exts ...string) http.FileSystem {
+func WithTracker(fs http.FileSystem, urlBase string, exts ...string) http.FileSystem {
 	m := make(map[string]struct{}, len(exts))
 	for _, ext := range exts {
 		m[ext] = struct{}{}
 	}
-	return &fsWithTracker{fs, m, root}
+	return &fsWithTracker{fs, m, urlBase}
 }
 
 // -----------------------------------------------------------------------------------------
