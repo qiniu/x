@@ -40,7 +40,8 @@ func Tee(a, b http.ResponseWriter) http.ResponseWriter {
 // -------------------------------------------------------------------------------
 
 type CodeRecorder struct {
-	Code int
+	Code  int
+	Bytes int
 }
 
 func (p *CodeRecorder) Header() http.Header {
@@ -48,6 +49,7 @@ func (p *CodeRecorder) Header() http.Header {
 }
 
 func (p *CodeRecorder) Write(buf []byte) (n int, err error) {
+	p.Bytes += len(buf)
 	return
 }
 
@@ -69,7 +71,7 @@ func New(h http.Handler) http.Handler {
 		start := time.Now()
 		h.ServeHTTP(tee, r)
 		dur := time.Since(start)
-		log.Printf("Returned %d in %d ms\n", recorder.Code, dur.Milliseconds())
+		log.Printf("Returned %d of %s %v with %d bytes in %d ms\n", recorder.Code, r.Method, r.URL, recorder.Bytes, dur.Milliseconds())
 	})
 }
 
