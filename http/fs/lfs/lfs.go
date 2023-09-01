@@ -64,8 +64,8 @@ func (p *fileInfo) Sys() interface{} {
 }
 
 type remote struct {
-	exts map[string]struct{}
-	root string
+	exts    map[string]struct{}
+	urlBase string
 }
 
 const (
@@ -109,7 +109,7 @@ func (p *remote) SyncLstat(local string, name string) (fs.FileInfo, error) {
 }
 
 func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
-	resp, err := http.Get(p.root + name)
+	resp, err := http.Get(p.urlBase + name)
 	if err != nil {
 		return
 	}
@@ -130,16 +130,16 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 func (p *remote) Init(local string) {
 }
 
-func NewRemote(root string, exts ...string) cached.Remote {
+func NewRemote(urlBase string, exts ...string) cached.Remote {
 	m := make(map[string]struct{}, len(exts))
 	for _, ext := range exts {
 		m[ext] = struct{}{}
 	}
-	return &remote{m, root}
+	return &remote{m, strings.TrimSuffix(urlBase, "/")}
 }
 
-func NewCached(local string, root string, exts ...string) http.FileSystem {
-	return cached.New(local, NewRemote(root, exts...))
+func NewCached(local string, urlBase string, exts ...string) http.FileSystem {
+	return cached.New(local, NewRemote(urlBase, exts...))
 }
 
 // -----------------------------------------------------------------------------------------
