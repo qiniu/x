@@ -42,30 +42,67 @@ func (p *cachedCloser) Close() error {
 
 // -----------------------------------------------------------------------------------------
 
-type fileInfo struct {
+type fileInfoRemote struct {
 	fs.FileInfo
 	size int64
 }
 
-func (p *fileInfo) Size() int64 {
+func (p *fileInfoRemote) Size() int64 {
 	return p.size
 }
 
-func (p *fileInfo) Mode() fs.FileMode {
-	return p.FileInfo.Mode() | fs.ModeSymlink
+func (p *fileInfoRemote) Mode() fs.FileMode {
+	return p.FileInfo.Mode() | cached.ModeRemote
 }
 
-func (p *fileInfo) IsDir() bool {
+func (p *fileInfoRemote) IsDir() bool {
 	return false
 }
 
-func (p *fileInfo) Sys() interface{} {
+func (p *fileInfoRemote) Sys() interface{} {
 	return nil
 }
+
+// -----------------------------------------------------------------------------------------
 
 type remote struct {
 	exts    map[string]struct{}
 	urlBase string
+}
+
+func (p *remote) isRemote(fi fs.FileInfo, file string) bool {
+	if !fi.Mode().IsRegular() || fi.Size() > 255 {
+		return false
+	}
+	ext := filepath.Ext(file)
+	_, ok := p.exts[ext]
+	return ok
+}
+
+func (p *remote) ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error) {
+	if fis, err = dir.Readdir(-1); err != nil {
+		return
+	}
+	for i, fi := range fis {
+		name := fi.Name()
+		if p.isRemote(fi, name) {
+			localFile := filepath.Join(localDir, name)
+			fi = remoteStat(localFile, fi)
+			fis[i] = fi
+		}
+	}
+	return
+}
+
+func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
+	fi, err = os.Lstat(localFile)
+	if err != nil {
+		return
+	}
+	if p.isRemote(fi, localFile) {
+		fi = remoteStat(localFile, fi)
+	}
+	return
 }
 
 const (
@@ -73,35 +110,22 @@ const (
 	lfsSize = "size "
 )
 
-func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
-	fi, err = os.Lstat(localFile)
-	if err != nil {
-		return
-	}
-	mode := fi.Mode()
-	if !mode.IsRegular() || fi.Size() > 255 {
-		return
-	}
-	ext := filepath.Ext(localFile)
-	if _, ok := p.exts[ext]; !ok {
-		return
-	}
+func remoteStat(localFile string, fi fs.FileInfo) fs.FileInfo {
 	b, e := os.ReadFile(localFile)
 	text := string(b)
 	if e != nil || !strings.HasPrefix(text, lfsSpec) {
-		return
+		return fi
 	}
-
 	lines := strings.SplitN(text, "\n", 4)
 	for _, line := range lines {
 		if strings.HasPrefix(line, lfsSize) {
 			if size, e := strconv.ParseInt(line[len(lfsSize):], 10, 64); e == nil {
-				return &fileInfo{fi, size}, nil
+				return &fileInfoRemote{fi, size}
 			}
 			break
 		}
 	}
-	return
+	return fi
 }
 
 func (p *remote) SyncLstat(local string, name string) (fs.FileInfo, error) {
