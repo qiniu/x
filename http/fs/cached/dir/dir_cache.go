@@ -1,4 +1,4 @@
-package cached
+package dir
 
 import (
 	"encoding/binary"

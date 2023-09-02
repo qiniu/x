@@ -15,10 +15,6 @@ import (
 	"github.com/qiniu/x/http/fs/cached"
 )
 
-var (
-	CacheFileName string = ".cache"
-)
-
 // -----------------------------------------------------------------------------------------
 
 type cachedCloser struct {
@@ -84,20 +80,9 @@ func (p *remote) isRemote(fi fs.FileInfo, file string) bool {
 }
 
 func (p *remote) ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error) {
-	cacheFile := filepath.Join(localDir, CacheFileName)
-	b, err := os.ReadFile(cacheFile)
-	if err == nil {
-		fis, err = cached.ReadFileInfos(b)
-		if err == nil {
-			return
-		}
-		log.Printf("ReaddirAll: %s cache file broken and skipped - %v\n", localDir, err)
-	}
 	if fis, err = dir.Readdir(-1); err != nil {
 		return
 	}
-	data := make([]byte, cached.SizeFileInfos(fis))
-	b = cached.WriteCacheHdr(data, len(fis))
 	for i, fi := range fis {
 		name := fi.Name()
 		if p.isRemote(fi, name) {
@@ -105,16 +90,9 @@ func (p *remote) ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, e
 			fi = remoteStat(localFile, fi)
 			fis[i] = fi
 		}
-		b = cached.WriteEntry(b, fi)
 	}
-	os.WriteFile(cacheFile, data, 0666)
 	return
 }
-
-const (
-	lfsSpec = "version https://git-lfs.github.com/spec/"
-	lfsSize = "size "
-)
 
 func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
 	fi, err = os.Lstat(localFile)
@@ -126,6 +104,11 @@ func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
 	}
 	return
 }
+
+const (
+	lfsSpec = "version https://git-lfs.github.com/spec/"
+	lfsSize = "size "
+)
 
 func remoteStat(localFile string, fi fs.FileInfo) fs.FileInfo {
 	b, e := os.ReadFile(localFile)
