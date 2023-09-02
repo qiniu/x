@@ -34,7 +34,7 @@ func Union(fs ...http.FileSystem) http.FileSystem {
 
 type fsPlugins struct {
 	fs   http.FileSystem
-	exts map[string]Opener
+	exts map[string]Plugin
 }
 
 func (p *fsPlugins) Open(name string) (http.File, error) {
@@ -45,15 +45,15 @@ func (p *fsPlugins) Open(name string) (http.File, error) {
 	return p.fs.Open(name)
 }
 
-type Opener = func(fs http.FileSystem, name string) (file http.File, err error)
+type Plugin = func(fs http.FileSystem, name string) (file http.File, err error)
 
-// Plugins implements a filesystem with plugins by specified (ext string, plugin Opener) pairs.
+// Plugins implements a filesystem with plugins by specified (ext string, plugin Plugin) pairs.
 func Plugins(fs http.FileSystem, plugins ...interface{}) http.FileSystem {
 	n := len(plugins)
-	exts := make(map[string]Opener, n/2)
+	exts := make(map[string]Plugin, n/2)
 	for i := 0; i < n; i += 2 {
 		ext := plugins[i].(string)
-		fn := plugins[i+1].(Opener)
+		fn := plugins[i+1].(Plugin)
 		exts[ext] = fn
 	}
 	return &fsPlugins{fs, exts}
