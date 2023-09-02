@@ -41,26 +41,27 @@ func Tee(a, b http.ResponseWriter) http.ResponseWriter {
 
 // -------------------------------------------------------------------------------
 
-type CodeRecorder struct {
-	Code  int
-	Bytes int64
+type ResponseRecorder struct {
+	Code      int
+	Bytes     int64
+	HeaderMap http.Header
 }
 
-func (p *CodeRecorder) Header() http.Header {
-	return nil
+func (p *ResponseRecorder) Header() http.Header {
+	return p.HeaderMap
 }
 
-func (p *CodeRecorder) Write(buf []byte) (n int, err error) {
+func (p *ResponseRecorder) Write(buf []byte) (n int, err error) {
 	p.Bytes += int64(len(buf))
 	return
 }
 
-func (p *CodeRecorder) WriteHeader(statusCode int) {
+func (p *ResponseRecorder) WriteHeader(statusCode int) {
 	p.Code = statusCode
 }
 
-func NewCodeRecorder() *CodeRecorder {
-	return &CodeRecorder{}
+func NewRecorder() *ResponseRecorder {
+	return &ResponseRecorder{Code: 200, HeaderMap: make(http.Header)}
 }
 
 // -------------------------------------------------------------------------------
@@ -71,7 +72,7 @@ func New(h http.Handler) http.Handler {
 
 func NewWith(h http.Handler, log *log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		recorder := NewCodeRecorder()
+		recorder := NewRecorder()
 		tee := Tee(w, recorder)
 		log.Printf("%s %v\n", r.Method, r.URL)
 		start := time.Now()
