@@ -15,8 +15,6 @@ import (
 	"github.com/qiniu/x/http/fs/cached"
 )
 
-//go:generate msgp -o msgp.go -tests false
-
 var (
 	CacheFileName string = ".cache"
 )
