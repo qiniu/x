@@ -10,11 +10,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	xfs "github.com/qiniu/x/http/fs"
 	"github.com/qiniu/x/http/fs/cached"
 )
+
+//go:generate msgp -o msgp.go -tests false
 
 var (
 	CacheFileName string = ".cache"
@@ -70,59 +71,45 @@ func (p *fileInfoRemote) Sys() interface{} {
 
 // -----------------------------------------------------------------------------------------
 
-type dirEntry struct {
-	Name    string      `msg:"name"`  // base name of the file
-	Size    int64       `msg:"size"`  // length in bytes for regular files; system-dependent for others
-	ModTime int64       `msg:"mtime"` // modification time in UnixMicro
-	Mode    fs.FileMode `msg:"mode"`  // file mode bits
-}
-
-type fileInfo struct {
-	d dirEntry
-}
-
-func (p *fileInfo) Name() string {
-	return p.d.Name
-}
-
-func (p *fileInfo) Size() int64 {
-	return p.d.Size
-}
-
-func (p *fileInfo) Mode() fs.FileMode {
-	return p.d.Mode
-}
-
-func (p *fileInfo) ModTime() time.Time {
-	return time.UnixMicro(p.d.ModTime)
-}
-
-func (p *fileInfo) IsDir() bool {
-	return p.d.Mode.IsDir()
-}
-
-func (p *fileInfo) Sys() interface{} {
-	return nil
-}
-
-// -----------------------------------------------------------------------------------------
-
 type remote struct {
 	exts    map[string]struct{}
 	urlBase string
 }
 
-func (p *remote) notIsRemote(fi fs.FileInfo, file string) bool {
+func (p *remote) isRemote(fi fs.FileInfo, file string) bool {
 	if !fi.Mode().IsRegular() || fi.Size() > 255 {
-		return true
+		return false
 	}
 	ext := filepath.Ext(file)
 	_, ok := p.exts[ext]
-	return !ok
+	return ok
 }
 
 func (p *remote) ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error) {
-	// cacheFile := filepath.Join(localDir, CacheFileName)
+	cacheFile := filepath.Join(localDir, CacheFileName)
+	b, err := os.ReadFile(cacheFile)
+	if err == nil {
+		fis, err = cached.ReadFileInfos(b)
+		if err == nil {
+			return
+		}
+		log.Printf("ReaddirAll: %s cache file broken and skipped - %v\n", localDir, err)
+	}
+	if fis, err = dir.Readdir(-1); err != nil {
+		return
+	}
+	data := make([]byte, cached.SizeFileInfos(fis))
+	b = cached.WriteCacheHdr(data, len(fis))
+	for i, fi := range fis {
+		name := fi.Name()
+		if p.isRemote(fi, name) {
+			localFile := filepath.Join(localDir, name)
+			fi = remoteStat(localFile, fi)
+			fis[i] = fi
+		}
+		b = cached.WriteEntry(b, fi)
+	}
+	os.WriteFile(cacheFile, data, 0666)
 	return
 }
 
@@ -136,24 +123,28 @@ func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
 	if err != nil {
 		return
 	}
-	if p.notIsRemote(fi, localFile) {
-		return
+	if p.isRemote(fi, localFile) {
+		fi = remoteStat(localFile, fi)
 	}
+	return
+}
+
+func remoteStat(localFile string, fi fs.FileInfo) fs.FileInfo {
 	b, e := os.ReadFile(localFile)
 	text := string(b)
 	if e != nil || !strings.HasPrefix(text, lfsSpec) {
-		return
+		return fi
 	}
 	lines := strings.SplitN(text, "\n", 4)
 	for _, line := range lines {
 		if strings.HasPrefix(line, lfsSize) {
 			if size, e := strconv.ParseInt(line[len(lfsSize):], 10, 64); e == nil {
-				return &fileInfoRemote{fi, size}, nil
+				return &fileInfoRemote{fi, size}
 			}
 			break
 		}
 	}
-	return
+	return fi
 }
 
 func (p *remote) SyncLstat(local string, name string) (fs.FileInfo, error) {

@@ -16,6 +16,8 @@ func IsRemote(mode fs.FileMode) bool {
 	return (mode & ModeRemote) == ModeRemote
 }
 
+// -----------------------------------------------------------------------------------------
+
 type Remote interface {
 	Init(local string)
 	Lstat(localFile string) (fs.FileInfo, error)
@@ -59,6 +61,8 @@ func (p *fsCached) Open(name string) (file http.File, err error) {
 	}
 	return
 }
+
+// -----------------------------------------------------------------------------------------
 
 type dir struct {
 	items []fs.FileInfo
@@ -121,7 +125,11 @@ func (d dirEntry) Type() fs.FileMode {
 	return d.FileInfo.Mode().Type()
 }
 
+// -----------------------------------------------------------------------------------------
+
 func New(local string, remote Remote) http.FileSystem {
 	remote.Init(local)
 	return &fsCached{local, remote}
 }
+
+// -----------------------------------------------------------------------------------------
