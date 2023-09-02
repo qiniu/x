@@ -10,9 +10,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	xfs "github.com/qiniu/x/http/fs"
 	"github.com/qiniu/x/http/fs/cached"
+)
+
+var (
+	CacheFileName string = ".cache"
 )
 
 // -----------------------------------------------------------------------------------------
@@ -42,30 +47,83 @@ func (p *cachedCloser) Close() error {
 
 // -----------------------------------------------------------------------------------------
 
-type fileInfo struct {
+type fileInfoRemote struct {
 	fs.FileInfo
 	size int64
 }
 
-func (p *fileInfo) Size() int64 {
+func (p *fileInfoRemote) Size() int64 {
 	return p.size
 }
 
+func (p *fileInfoRemote) Mode() fs.FileMode {
+	return p.FileInfo.Mode() | cached.ModeRemote
+}
+
+func (p *fileInfoRemote) IsDir() bool {
+	return false
+}
+
+func (p *fileInfoRemote) Sys() interface{} {
+	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+type dirEntry struct {
+	Name    string      `msg:"name"`  // base name of the file
+	Size    int64       `msg:"size"`  // length in bytes for regular files; system-dependent for others
+	ModTime int64       `msg:"mtime"` // modification time in UnixMicro
+	Mode    fs.FileMode `msg:"mode"`  // file mode bits
+}
+
+type fileInfo struct {
+	d dirEntry
+}
+
+func (p *fileInfo) Name() string {
+	return p.d.Name
+}
+
+func (p *fileInfo) Size() int64 {
+	return p.d.Size
+}
+
 func (p *fileInfo) Mode() fs.FileMode {
-	return p.FileInfo.Mode() | fs.ModeSymlink
+	return p.d.Mode
+}
+
+func (p *fileInfo) ModTime() time.Time {
+	return time.UnixMicro(p.d.ModTime)
 }
 
 func (p *fileInfo) IsDir() bool {
-	return false
+	return p.d.Mode.IsDir()
 }
 
 func (p *fileInfo) Sys() interface{} {
 	return nil
 }
 
+// -----------------------------------------------------------------------------------------
+
 type remote struct {
 	exts    map[string]struct{}
 	urlBase string
+}
+
+func (p *remote) notIsRemote(fi fs.FileInfo, file string) bool {
+	if !fi.Mode().IsRegular() || fi.Size() > 255 {
+		return true
+	}
+	ext := filepath.Ext(file)
+	_, ok := p.exts[ext]
+	return !ok
+}
+
+func (p *remote) ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error) {
+	// cacheFile := filepath.Join(localDir, CacheFileName)
+	return
 }
 
 const (
@@ -78,12 +136,7 @@ func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
 	if err != nil {
 		return
 	}
-	mode := fi.Mode()
-	if !mode.IsRegular() || fi.Size() > 255 {
-		return
-	}
-	ext := filepath.Ext(localFile)
-	if _, ok := p.exts[ext]; !ok {
+	if p.notIsRemote(fi, localFile) {
 		return
 	}
 	b, e := os.ReadFile(localFile)
@@ -91,12 +144,11 @@ func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
 	if e != nil || !strings.HasPrefix(text, lfsSpec) {
 		return
 	}
-
 	lines := strings.SplitN(text, "\n", 4)
 	for _, line := range lines {
 		if strings.HasPrefix(line, lfsSize) {
 			if size, e := strconv.ParseInt(line[len(lfsSize):], 10, 64); e == nil {
-				return &fileInfo{fi, size}, nil
+				return &fileInfoRemote{fi, size}, nil
 			}
 			break
 		}
