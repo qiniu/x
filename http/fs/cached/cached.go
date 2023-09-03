@@ -1,11 +1,16 @@
 package cached
 
 import (
+	"errors"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+)
+
+var (
+	ErrOffline = errors.New("remote filesystem is offline")
 )
 
 const (
@@ -19,16 +24,17 @@ func IsRemote(mode fs.FileMode) bool {
 // -----------------------------------------------------------------------------------------
 
 type Remote interface {
-	Init(local string)
+	Init(local string, offline bool)
 	Lstat(localFile string) (fs.FileInfo, error)
-	ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error)
+	ReaddirAll(localDir string, dir *os.File, offline bool) (fis []fs.FileInfo, err error)
 	SyncLstat(local string, name string) (fs.FileInfo, error)
 	SyncOpen(local string, name string) (http.File, error)
 }
 
 type fsCached struct {
-	local  string
-	remote Remote
+	local   string
+	remote  Remote
+	offline bool
 }
 
 func (p *fsCached) Open(name string) (file http.File, err error) {
@@ -36,12 +42,18 @@ func (p *fsCached) Open(name string) (file http.File, err error) {
 	localFile := filepath.Join(local, name)
 	fi, err := remote.Lstat(localFile)
 	if os.IsNotExist(err) {
+		if p.offline {
+			return nil, ErrOffline
+		}
 		fi, err = p.remote.SyncLstat(local, name)
 		if err != nil {
 			return
 		}
 	}
 	if IsRemote(fi.Mode()) {
+		if p.offline {
+			return nil, ErrOffline
+		}
 		return remote.SyncOpen(local, name)
 	}
 	f, err := os.Open(localFile)
@@ -50,7 +62,7 @@ func (p *fsCached) Open(name string) (file http.File, err error) {
 		return
 	}
 	if fi.IsDir() {
-		fis, e := remote.ReaddirAll(localFile, f)
+		fis, e := remote.ReaddirAll(localFile, f, p.offline)
 		if e != nil {
 			f.Close()
 			return nil, e
@@ -127,9 +139,13 @@ func (d dirEntry) Type() fs.FileMode {
 
 // -----------------------------------------------------------------------------------------
 
-func New(local string, remote Remote) http.FileSystem {
-	remote.Init(local)
-	return &fsCached{local, remote}
+func New(local string, remote Remote, offline ...bool) http.FileSystem {
+	var isOffline bool
+	if offline != nil {
+		isOffline = offline[0]
+	}
+	remote.Init(local, isOffline)
+	return &fsCached{local, remote, isOffline}
 }
 
 // -----------------------------------------------------------------------------------------
