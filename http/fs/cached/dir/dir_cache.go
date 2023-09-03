@@ -79,7 +79,7 @@ func (p *entryHdr) read(b []byte) ([]byte, error) {
 	return b[24:], nil
 }
 
-func WriteEntry(b []byte, fi fs.FileInfo) []byte {
+func WriteFileInfo(b []byte, fi fs.FileInfo) []byte {
 	binary.LittleEndian.PutUint64(b, uint64(fi.Size()))
 	binary.LittleEndian.PutUint64(b[8:], uint64(fi.ModTime().UnixMicro()))
 	binary.LittleEndian.PutUint32(b[16:], uint32(fi.Mode()))
