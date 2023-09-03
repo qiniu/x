@@ -79,19 +79,24 @@ func (p *remote) isRemote(fi fs.FileInfo, file string) bool {
 	return ok
 }
 
-func (p *remote) ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error) {
+func (p *remote) ReaddirAll(localDir string, dir *os.File, offline bool) (fis []fs.FileInfo, err error) {
 	if fis, err = dir.Readdir(-1); err != nil {
 		return
 	}
-	for i, fi := range fis {
+	n := 0
+	for _, fi := range fis {
 		name := fi.Name()
 		if p.isRemote(fi, name) {
+			if offline {
+				continue
+			}
 			localFile := filepath.Join(localDir, name)
 			fi = remoteStat(localFile, fi)
-			fis[i] = fi
 		}
+		fis[n] = fi
+		n++
 	}
-	return
+	return fis[:n], nil
 }
 
 func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
@@ -151,7 +156,7 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 	return closer.file, nil
 }
 
-func (p *remote) Init(local string) {
+func (p *remote) Init(local string, offline bool) {
 }
 
 func NewRemote(urlBase string, exts ...string) cached.Remote {
@@ -164,6 +169,10 @@ func NewRemote(urlBase string, exts ...string) cached.Remote {
 
 func NewCached(local string, urlBase string, exts ...string) http.FileSystem {
 	return cached.New(local, NewRemote(urlBase, exts...))
+}
+
+func NewOfflineCached(local string, urlBase string, exts ...string) http.FileSystem {
+	return cached.New(local, NewRemote(urlBase, exts...), true)
 }
 
 // -----------------------------------------------------------------------------------------
