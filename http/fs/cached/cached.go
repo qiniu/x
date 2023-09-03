@@ -164,13 +164,15 @@ func DownloadFile(localFile string, file http.File) (err error) {
 	if err != nil {
 		return
 	}
-	localFileDownloading := localFile + ".download"
+	localFileDownloading := localFile + ".download~"
 	err = xfs.Download(localFileDownloading, file)
+	if err == nil {
+		err = os.Rename(localFileDownloading, localFile)
+	}
 	if err != nil {
 		os.Remove(localFileDownloading)
-		return
 	}
-	return os.Rename(localFileDownloading, localFile)
+	return
 }
 
 // -----------------------------------------------------------------------------------------
