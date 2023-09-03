@@ -38,7 +38,7 @@ func ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error) {
 			fi = remoteStat(localFile, fi)
 			fis[i] = fi
 		}
-		b = dircache.WriteEntry(b, fi)
+		b = dircache.WriteFileInfo(b, fi)
 	}
 	os.WriteFile(cacheFile, data, 0666)
 	return
