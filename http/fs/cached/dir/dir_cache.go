@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"io/fs"
-	"os"
 	"time"
 )
 
@@ -83,7 +82,7 @@ func WriteFileInfo(b []byte, fi fs.FileInfo) []byte {
 	binary.LittleEndian.PutUint64(b, uint64(fi.Size()))
 	binary.LittleEndian.PutUint64(b[8:], uint64(fi.ModTime().UnixMicro()))
 	binary.LittleEndian.PutUint32(b[16:], uint32(fi.Mode()))
-	name := []byte(fi.Name())
+	name := fi.Name()
 	binary.LittleEndian.PutUint32(b[20:], uint32(len(name)))
 	copy(b[24:], name)
 	return b[24+len(name):]
@@ -129,7 +128,7 @@ func (p *fileInfo) Sys() interface{} {
 
 // -----------------------------------------------------------------------------------------
 
-func ReadFileInfos(b []byte) (fis []os.FileInfo, err error) {
+func ReadFileInfos(b []byte) (fis []fs.FileInfo, err error) {
 	var h cacheHdr
 	if b, err = h.read(b); err != nil {
 		return
@@ -145,12 +144,33 @@ func ReadFileInfos(b []byte) (fis []os.FileInfo, err error) {
 	return
 }
 
+func SizeFileInfo(fi fs.FileInfo) int {
+	return entryHdrLen + len(fi.Name())
+}
+
 func SizeFileInfos(fis []fs.FileInfo) int {
 	namesLen := 0
 	for _, fi := range fis {
 		namesLen += len(fi.Name())
 	}
 	return cacheHdrLen + entryHdrLen*len(fis) + namesLen
+}
+
+// -----------------------------------------------------------------------------------------
+
+func BytesFileInfo(fi fs.FileInfo) []byte {
+	n := SizeFileInfo(fi)
+	b := make([]byte, n)
+	WriteFileInfo(b, fi)
+	return b
+}
+
+func FileInfoFrom(b []byte) (ret fs.FileInfo, err error) {
+	var fi fileInfo
+	if _, err = fi.read(b); err != nil {
+		return
+	}
+	return &fi, nil
 }
 
 // -----------------------------------------------------------------------------------------

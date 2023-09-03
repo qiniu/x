@@ -24,18 +24,8 @@ type cachedCloser struct {
 }
 
 func (p *cachedCloser) Close() error {
-	file := p.file
-	_, err := file.Seek(0, io.SeekStart)
-	if err == nil {
-		localFile := p.localFile
-		localFileDownloading := localFile + ".download" // TODO: use tempfile
-		err = xfs.Download(localFileDownloading, file)
-		if err == nil {
-			err = os.Rename(localFileDownloading, localFile)
-			if err != nil {
-				log.Println("Cache failed:", err)
-			}
-		}
+	if err := cached.DownloadFile(p.localFile, p.file); err != nil {
+		log.Println("[WARN] Cache file failed:", err)
 	}
 	return p.ReadCloser.Close()
 }
