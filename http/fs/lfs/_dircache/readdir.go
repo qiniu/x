@@ -13,10 +13,10 @@ const (
 	CacheFileName string = ".cache"
 )
 
-type FnRemoteStat = func(localFile string, fi fs.FileInfo) fs.FileInfo
-type FnIsRemote = func(fi fs.FileInfo, file string) bool
+func remoteStat(localFile string, fi fs.FileInfo) fs.FileInfo
+func isRemote(fi fs.FileInfo, file string) bool
 
-func ReaddirAll(localDir string, dir *os.File, remoteStat FnRemoteStat, isRemote FnIsRemote) (fis []fs.FileInfo, err error) {
+func ReaddirAll(localDir string, dir *os.File) (fis []fs.FileInfo, err error) {
 	cacheFile := filepath.Join(localDir, CacheFileName)
 	b, err := os.ReadFile(cacheFile)
 	if err == nil {
