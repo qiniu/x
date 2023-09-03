@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	xfs "github.com/qiniu/x/http/fs"
 )
 
 var (
@@ -35,6 +37,15 @@ type fsCached struct {
 	local   string
 	remote  Remote
 	offline bool
+}
+
+func New(local string, remote Remote, offline ...bool) http.FileSystem {
+	var isOffline bool
+	if offline != nil {
+		isOffline = offline[0]
+	}
+	remote.Init(local, isOffline)
+	return &fsCached{local, remote, isOffline}
 }
 
 func (p *fsCached) Open(name string) (file http.File, err error) {
@@ -67,7 +78,7 @@ func (p *fsCached) Open(name string) (file http.File, err error) {
 			f.Close()
 			return nil, e
 		}
-		file = &dir{file: f, items: fis}
+		file = Dir(f, fis)
 	} else {
 		file = f
 	}
@@ -76,10 +87,19 @@ func (p *fsCached) Open(name string) (file http.File, err error) {
 
 // -----------------------------------------------------------------------------------------
 
+type StatCloser interface {
+	Stat() (fs.FileInfo, error)
+	Close() error
+}
+
 type dir struct {
 	items []fs.FileInfo
+	file  StatCloser
 	off   int
-	file  *os.File
+}
+
+func Dir(base StatCloser, fis []fs.FileInfo) http.File {
+	return &dir{fis, base, 0}
 }
 
 func (p *dir) Close() error {
@@ -139,13 +159,18 @@ func (d dirEntry) Type() fs.FileMode {
 
 // -----------------------------------------------------------------------------------------
 
-func New(local string, remote Remote, offline ...bool) http.FileSystem {
-	var isOffline bool
-	if offline != nil {
-		isOffline = offline[0]
+func DownloadFile(localFile string, file http.File) (err error) {
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		return
 	}
-	remote.Init(local, isOffline)
-	return &fsCached{local, remote, isOffline}
+	localFileDownloading := localFile + ".download"
+	err = xfs.Download(localFileDownloading, file)
+	if err != nil {
+		os.Remove(localFileDownloading)
+		return
+	}
+	return os.Rename(localFileDownloading, localFile)
 }
 
 // -----------------------------------------------------------------------------------------
