@@ -54,6 +54,10 @@ func (p *dataFile) Name() string {
 	return path.Base(p.name)
 }
 
+func (p *dataFile) FullName() string {
+	return p.name
+}
+
 func (p *dataFile) Size() int64 {
 	return p.ContentReader.Size()
 }

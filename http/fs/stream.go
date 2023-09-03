@@ -61,6 +61,10 @@ func (p *stream) Name() string {
 	return path.Base(p.name)
 }
 
+func (p *stream) FullName() string {
+	return p.name
+}
+
 func (p *stream) Stat() (fs.FileInfo, error) {
 	return p, nil
 }
@@ -148,6 +152,10 @@ func (p *httpFile) Mode() fs.FileMode {
 
 func (p *httpFile) Name() string {
 	return path.Base(p.name)
+}
+
+func (p *httpFile) FullName() string {
+	return p.name
 }
 
 func (p *httpFile) Stat() (fs.FileInfo, error) {
