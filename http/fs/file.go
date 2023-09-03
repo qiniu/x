@@ -18,38 +18,6 @@ type ContentReader interface {
 	Size() int64
 }
 
-type dataFileInfo struct {
-	r    ContentReader
-	name string
-}
-
-func (p *dataFileInfo) Name() string {
-	return path.Base(p.name)
-}
-
-func (p *dataFileInfo) Size() int64 {
-	return p.r.Size()
-}
-
-func (p *dataFileInfo) Mode() fs.FileMode {
-	return 0
-}
-
-func (p *dataFileInfo) ModTime() time.Time {
-	if r, ok := p.r.(interface{ ModTime() time.Time }); ok {
-		return r.ModTime()
-	}
-	return time.Now()
-}
-
-func (p *dataFileInfo) IsDir() bool {
-	return false
-}
-
-func (p *dataFileInfo) Sys() interface{} {
-	return nil
-}
-
 type dataFile struct {
 	ContentReader
 	name string
@@ -70,8 +38,35 @@ func (p *dataFile) Readdir(count int) ([]fs.FileInfo, error) {
 	return nil, os.ErrInvalid
 }
 
+func (p *dataFile) IsDir() bool {
+	return false
+}
+
+func (p *dataFile) Mode() fs.FileMode {
+	return 0
+}
+
 func (p *dataFile) Stat() (fs.FileInfo, error) {
-	return &dataFileInfo{p.ContentReader, p.name}, nil
+	return p, nil
+}
+
+func (p *dataFile) Name() string {
+	return path.Base(p.name)
+}
+
+func (p *dataFile) Size() int64 {
+	return p.ContentReader.Size()
+}
+
+func (p *dataFile) ModTime() time.Time {
+	if r, ok := p.ContentReader.(interface{ ModTime() time.Time }); ok {
+		return r.ModTime()
+	}
+	return time.Now()
+}
+
+func (p *dataFile) Sys() interface{} {
+	return nil
 }
 
 // File implements a http.File by a ContentReader which may implement

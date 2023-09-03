@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"time"
 )
 
@@ -48,8 +49,20 @@ func (p *stream) Readdir(count int) ([]fs.FileInfo, error) {
 	return nil, os.ErrInvalid
 }
 
+func (p *stream) IsDir() bool {
+	return false
+}
+
+func (p *stream) Mode() fs.FileMode {
+	return 0
+}
+
+func (p *stream) Name() string {
+	return path.Base(p.name)
+}
+
 func (p *stream) Stat() (fs.FileInfo, error) {
-	return &dataFileInfo{p, p.name}, nil
+	return p, nil
 }
 
 func (p *stream) Read(b []byte) (n int, err error) {
@@ -93,6 +106,10 @@ func (p *stream) ModTime() time.Time {
 	return time.Now()
 }
 
+func (p *stream) Sys() interface{} {
+	return nil
+}
+
 // SequenceFile implements a http.File by a io.ReadCloser object.
 func SequenceFile(name string, body io.ReadCloser) http.File {
 	return &stream{file: body}
@@ -121,8 +138,20 @@ func (p *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
 	return nil, os.ErrInvalid
 }
 
+func (p *httpFile) IsDir() bool {
+	return false
+}
+
+func (p *httpFile) Mode() fs.FileMode {
+	return 0
+}
+
+func (p *httpFile) Name() string {
+	return path.Base(p.name)
+}
+
 func (p *httpFile) Stat() (fs.FileInfo, error) {
-	return &dataFileInfo{p, p.name}, nil
+	return p, nil
 }
 
 func (p *httpFile) Read(b []byte) (n int, err error) {
@@ -163,6 +192,10 @@ func (p *httpFile) ModTime() time.Time {
 		}
 	}
 	return time.Now()
+}
+
+func (p *httpFile) Sys() interface{} {
+	return nil
 }
 
 // HttpFile implements a http.File by a http.Response object.
