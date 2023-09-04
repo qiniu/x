@@ -48,6 +48,21 @@ func New(local string, remote Remote, offline ...bool) http.FileSystem {
 	return &fsCached{local, remote, isOffline}
 }
 
+func RemoteOf(fs http.FileSystem) (r Remote, ok bool) {
+	c, ok := fs.(*fsCached)
+	if ok {
+		r = c.remote
+	}
+	return
+}
+
+func IsOffline(fs http.FileSystem) bool {
+	if c, ok := fs.(*fsCached); ok {
+		return c.offline
+	}
+	return false
+}
+
 func (p *fsCached) Open(name string) (file http.File, err error) {
 	remote, local := p.remote, p.local
 	localFile := filepath.Join(local, name)
