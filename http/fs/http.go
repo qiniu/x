@@ -3,6 +3,7 @@ package fs
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"path"
 	"strings"
@@ -34,11 +35,17 @@ func (p *HttpOpener) Open(ctx context.Context, url string) (file http.File, err 
 		return nil, err
 	}
 	if resp.StatusCode >= 400 {
+		e := &fs.PathError{Op: "http.Get", Path: url}
+		if resp.StatusCode == 404 {
+			e.Err = fs.ErrNotExist
+			return nil, e
+		}
 		url := "url"
 		if req := resp.Request; req != nil {
 			url = req.URL.String()
 		}
-		return nil, fmt.Errorf("http.Get %s error: status %d (%s)", url, resp.StatusCode, resp.Status)
+		e.Err = fmt.Errorf("http.Get %s error: status %d (%s)", url, resp.StatusCode, resp.Status)
+		return nil, e
 	}
 	return HttpFile(resp.Request.URL.Path, resp), nil
 }

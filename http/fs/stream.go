@@ -29,6 +29,25 @@ func Download(destFile string, src http.File) (err error) {
 
 // -----------------------------------------------------------------------------------------
 
+// Unseekable convert a http.File into a io.ReadCloser object without io.Seeker.
+// Note you should stop using the origin http.File object to read data.
+// This method is used to reduce unnecessary memory usage.
+func Unseekable(file http.File) io.ReadCloser {
+	switch f := file.(type) {
+	case *stream:
+		if f.br == nil {
+			return f.file
+		}
+	case *httpFile:
+		if f.br == nil {
+			return f.file
+		}
+	}
+	return file
+}
+
+// -----------------------------------------------------------------------------------------
+
 type stream struct {
 	file io.ReadCloser
 	b    bytes.Buffer
@@ -42,11 +61,11 @@ func (p *stream) TryReader() *bytes.Reader {
 }
 
 func (p *stream) ReadDir(n int) ([]fs.DirEntry, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *stream) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *stream) IsDir() bool {
@@ -54,7 +73,7 @@ func (p *stream) IsDir() bool {
 }
 
 func (p *stream) Mode() fs.FileMode {
-	return 0
+	return fs.ModeIrregular
 }
 
 func (p *stream) Name() string {
@@ -135,11 +154,11 @@ func (p *httpFile) TryReader() *bytes.Reader {
 }
 
 func (p *httpFile) ReadDir(n int) ([]fs.DirEntry, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *httpFile) IsDir() bool {
@@ -147,7 +166,7 @@ func (p *httpFile) IsDir() bool {
 }
 
 func (p *httpFile) Mode() fs.FileMode {
-	return 0
+	return fs.ModeIrregular
 }
 
 func (p *httpFile) Name() string {

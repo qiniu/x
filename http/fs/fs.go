@@ -22,7 +22,7 @@ func (p *unionFS) Open(name string) (f http.File, err error) {
 			return
 		}
 	}
-	return nil, os.ErrNotExist
+	return nil, fs.ErrNotExist
 }
 
 // Union merge a list of http.FileSystem into a union http.FileSystem object.
@@ -120,7 +120,7 @@ func (p rootDir) Open(name string) (f http.File, err error) {
 	if name == "/" {
 		return rootDir{}, nil
 	}
-	return nil, os.ErrNotExist
+	return nil, fs.ErrNotExist
 }
 
 // Root implements a http.FileSystem that only have a root directory.
