@@ -29,6 +29,25 @@ func Download(destFile string, src http.File) (err error) {
 
 // -----------------------------------------------------------------------------------------
 
+// Unseekable convert a http.File into a io.ReadCloser object without io.Seeker.
+// Note you should stop using the origin http.File object to read data.
+// This method is used to reduce unnecessary memory usage.
+func Unseekable(file http.File) io.ReadCloser {
+	switch f := file.(type) {
+	case *stream:
+		if f.br == nil {
+			return f.file
+		}
+	case *httpFile:
+		if f.br == nil {
+			return f.file
+		}
+	}
+	return file
+}
+
+// -----------------------------------------------------------------------------------------
+
 type stream struct {
 	file io.ReadCloser
 	b    bytes.Buffer
