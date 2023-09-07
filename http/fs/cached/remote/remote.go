@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	xfs "github.com/qiniu/x/http/fs"
 	"github.com/qiniu/x/http/fs/cached"
 	xdir "github.com/qiniu/x/http/fs/cached/dir"
 )
@@ -177,7 +176,7 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 	} else {
 		name = strings.TrimPrefix(name, "/")
 	}
-	o, err := p.bucket.Open(name)
+	f, err = p.bucket.Open(name)
 	if err != nil {
 		log.Printf(`[ERROR] bucket.Open("%s"): %v\n`, name, err)
 		return
@@ -185,8 +184,8 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 	if debugNet {
 		log.Println("[INFO] ==> bucket.Open", name)
 	}
-	if o.(interface{ IsDir() bool }).IsDir() {
-		fis, e := readdir(o)
+	if f.(interface{ IsDir() bool }).IsDir() {
+		fis, e := readdir(f)
 		if e != nil {
 			log.Printf(`[ERROR] Readdir("%s"): %v\n`, name, e)
 			return nil, e
@@ -209,10 +208,13 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 				log.Printf("[WARN] writeStubFile fail (%d errors)", nError)
 			}
 		}()
-		return cached.Dir(o, fis), nil
+		return cached.Dir(f, fis), nil
 	}
-	localFile := filepath.Join(local, name)
-	return &objFile{xfs.SequenceFile(name, o), localFile, p.notify}, nil
+	if p.cacheFile {
+		localFile := filepath.Join(local, name)
+		f = &objFile{f, localFile, p.notify}
+	}
+	return
 }
 
 func (p *remote) Init(local string, offline bool) {
