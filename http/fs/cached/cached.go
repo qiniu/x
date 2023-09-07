@@ -122,11 +122,11 @@ func (p *dir) Close() error {
 }
 
 func (p *dir) Read(b []byte) (n int, err error) {
-	return 0, os.ErrPermission
+	return 0, fs.ErrPermission
 }
 
 func (p *dir) Seek(offset int64, whence int) (int64, error) {
-	return 0, os.ErrPermission
+	return 0, fs.ErrPermission
 }
 
 func (p *dir) Stat() (fs.FileInfo, error) {

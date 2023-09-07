@@ -42,11 +42,11 @@ func (p *stream) TryReader() *bytes.Reader {
 }
 
 func (p *stream) ReadDir(n int) ([]fs.DirEntry, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *stream) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *stream) IsDir() bool {
@@ -54,7 +54,7 @@ func (p *stream) IsDir() bool {
 }
 
 func (p *stream) Mode() fs.FileMode {
-	return 0
+	return fs.ModeIrregular
 }
 
 func (p *stream) Name() string {
@@ -135,11 +135,11 @@ func (p *httpFile) TryReader() *bytes.Reader {
 }
 
 func (p *httpFile) ReadDir(n int) ([]fs.DirEntry, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *httpFile) IsDir() bool {
@@ -147,7 +147,7 @@ func (p *httpFile) IsDir() bool {
 }
 
 func (p *httpFile) Mode() fs.FileMode {
-	return 0
+	return fs.ModeIrregular
 }
 
 func (p *httpFile) Name() string {

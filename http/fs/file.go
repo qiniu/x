@@ -31,11 +31,11 @@ func (p *dataFile) Close() error {
 }
 
 func (p *dataFile) ReadDir(n int) ([]fs.DirEntry, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *dataFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, os.ErrInvalid
+	return nil, fs.ErrInvalid
 }
 
 func (p *dataFile) IsDir() bool {
@@ -93,7 +93,7 @@ func (p *filesDataFS) Open(name string) (f http.File, err error) {
 			return File(name, strings.NewReader(files[i+1])), nil
 		}
 	}
-	return nil, os.ErrNotExist
+	return nil, fs.ErrNotExist
 }
 
 // FilesWithContent implements a http.FileSystem by a list of file name and content.
@@ -116,7 +116,7 @@ func (p *filesFS) Open(name string) (f http.File, err error) {
 			return
 		}
 	}
-	return nil, os.ErrNotExist
+	return nil, fs.ErrNotExist
 }
 
 // Files implements a http.FileSystem by a list of file name and content file.
