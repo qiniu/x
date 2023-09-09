@@ -56,6 +56,13 @@ func Matched(patterns []string, fullName, dir, fname string, isDir bool) bool {
 	return false
 }
 
+func Selected(patterns []string, name string, isDir bool) bool {
+	if isDir {
+		return selectDir(patterns, name)
+	}
+	return Matched(patterns, name, "", "", false)
+}
+
 func selectDir(patterns []string, fullName string) bool {
 	for _, ign := range patterns {
 		if strings.HasPrefix(ign, "/") { // start with /
@@ -181,10 +188,7 @@ func New(fs http.FileSystem, filter FilterFunc) http.FileSystem {
 // Select creates a http.FileSystem with filter patterns.
 func Select(fs http.FileSystem, patterns ...string) http.FileSystem {
 	return New(fs, func(name string, fi DirEntry) bool {
-		if fi.IsDir() {
-			return selectDir(patterns, name)
-		}
-		return Matched(patterns, name, "", "", false)
+		return Selected(patterns, name, fi.IsDir())
 	})
 }
 
