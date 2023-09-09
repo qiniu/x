@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"io/ioutil"
+	"os"
 
 	"github.com/qiniu/x/log"
 )
@@ -14,13 +14,11 @@ var (
 )
 
 func Init(cflag, app, default_conf string) {
-
 	confDir, _ := GetDir(app)
 	confName = flag.String(cflag, confDir+"/"+default_conf, "the config file")
 }
 
 func GetPath() string {
-
 	if confName != nil {
 		return *confName
 	}
@@ -28,7 +26,6 @@ func GetPath() string {
 }
 
 func Load(conf interface{}) (err error) {
-
 	if !flag.Parsed() {
 		flag.Parse()
 	}
@@ -38,8 +35,7 @@ func Load(conf interface{}) (err error) {
 }
 
 func LoadEx(conf interface{}, confName string) (err error) {
-
-	data, err := ioutil.ReadFile(confName)
+	data, err := os.ReadFile(confName)
 	if err != nil {
 		log.Error("Load conf failed:", err)
 		return
@@ -54,8 +50,7 @@ func LoadEx(conf interface{}, confName string) (err error) {
 }
 
 func LoadFile(conf interface{}, confName string) (err error) {
-
-	data, err := ioutil.ReadFile(confName)
+	data, err := os.ReadFile(confName)
 	if err != nil {
 		return
 	}
@@ -65,17 +60,14 @@ func LoadFile(conf interface{}, confName string) (err error) {
 }
 
 func LoadBytes(conf interface{}, data []byte) (err error) {
-
 	return json.Unmarshal(trimComments(data), conf)
 }
 
 func LoadString(conf interface{}, data string) (err error) {
-
 	return json.Unmarshal(trimComments([]byte(data)), conf)
 }
 
 func trimComments(data []byte) (data1 []byte) {
-
 	var line []byte
 
 	data1 = data[:0]
@@ -95,7 +87,6 @@ func trimComments(data []byte) (data1 []byte) {
 }
 
 func trimCommentsLine(line []byte) []byte {
-
 	n := len(line)
 	quoteCount := 0
 	for i := 0; i < n; i++ {

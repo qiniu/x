@@ -24,7 +24,7 @@ func Matched(patterns []string, fullName, dir, fname string) bool {
 				if strings.HasPrefix(fullName, ign[:len(ign)-1]) {
 					return true
 				}
-			} else if fullName == ign {
+			} else if ign == fullName {
 				return true
 			}
 		} else {
@@ -42,6 +42,36 @@ func Matched(patterns []string, fullName, dir, fname string) bool {
 			} else if fname == ign {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+func selectDir(patterns []string, fullName string) bool {
+	for _, ign := range patterns {
+		if strings.HasPrefix(ign, "/") { // start with /
+			if strings.HasSuffix(ign, "/") { // end with /
+				if strings.HasPrefix(fullName, ign) {
+					return true
+				}
+				if strings.HasPrefix(ign, fullName) && (fullName == ign || ign[len(fullName)] == '/') {
+					return true
+				}
+			} else if strings.HasSuffix(ign, "*") {
+				prefix := ign[:len(ign)-1]
+				if strings.HasPrefix(fullName, prefix) {
+					return true
+				}
+				if strings.HasPrefix(prefix, fullName) {
+					return true
+				}
+			} else if ign == fullName {
+				return true
+			} else if strings.HasPrefix(ign, fullName) && ign[len(fullName)] == '/' {
+				return true
+			}
+		} else {
+			return true
 		}
 	}
 	return false
@@ -68,7 +98,7 @@ func (p *filterDir) ReadDir(count int) (fis []fs.DirEntry, err error) {
 	n := 0
 	dir, filter := p.dir, p.filter
 	for _, fi := range fis {
-		if filter(dir, fi) {
+		if filter(dir+fi.Name(), fi) {
 			fis[n] = fi
 			n++
 		}
@@ -83,7 +113,7 @@ func (p *filterDir) Readdir(count int) (fis []fs.FileInfo, err error) {
 	n := 0
 	dir, filter := p.dir, p.filter
 	for _, fi := range fis {
-		if filter(dir, fi) {
+		if filter(dir+fi.Name(), fi) {
 			fis[n] = fi
 			n++
 		}
@@ -97,11 +127,20 @@ type fsFilter struct {
 }
 
 func (p *fsFilter) Open(name string) (f http.File, err error) {
-	if f, err = p.fs.Open(name); err != nil {
+	if f, err = p.fs.Open(name); err != nil || name == "/" {
 		return
 	}
-	if fi, err := f.Stat(); err == nil && fi.IsDir() {
-		f = &filterDir{f, name, p.filter}
+	fi, err := f.Stat()
+	if err != nil {
+		f.Close()
+		return
+	}
+	if !p.filter(name, fi) {
+		f.Close()
+		return nil, fs.ErrNotExist
+	}
+	if fi.IsDir() {
+		f = &filterDir{f, name + "/", p.filter}
 	}
 	return
 }
@@ -118,7 +157,7 @@ type DirEntry interface {
 	IsDir() bool
 }
 
-type FilterFunc = func(dir string, fi DirEntry) bool
+type FilterFunc = func(name string, fi DirEntry) bool
 
 func New(fs http.FileSystem, filter FilterFunc) http.FileSystem {
 	return &fsFilter{fs, filter}
@@ -127,16 +166,11 @@ func New(fs http.FileSystem, filter FilterFunc) http.FileSystem {
 // -----------------------------------------------------------------------------------------
 
 func Select(fs http.FileSystem, patterns ...string) http.FileSystem {
-	return New(fs, func(dir string, fi DirEntry) bool {
-		name := fi.Name()
-		for _, item := range patterns {
-			if strings.HasPrefix(item, "/") && strings.HasSuffix(item, "/") {
-				if strings.HasPrefix(item, name) && (name == item || item[len(name)] == '/') {
-					return true
-				}
-			}
+	return New(fs, func(name string, fi DirEntry) bool {
+		if fi.IsDir() {
+			return selectDir(patterns, name)
 		}
-		return Matched(patterns, "", dir, name)
+		return Matched(patterns, name, "", "")
 	})
 }
 
