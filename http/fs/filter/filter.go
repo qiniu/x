@@ -10,7 +10,7 @@ import (
 
 // -----------------------------------------------------------------------------------------
 
-func Matched(patterns []string, fullName, dir, fname string) bool {
+func Matched(patterns []string, fullName, dir, fname string, isDir bool) bool {
 	for _, ign := range patterns {
 		if strings.HasPrefix(ign, "/") { // start with /
 			if fullName == "" {
@@ -36,6 +36,15 @@ func Matched(patterns []string, fullName, dir, fname string) bool {
 					return true
 				}
 			} else if strings.HasPrefix(ign, "*") {
+				if !isDir {
+					// the pattern `*.` means to match filename without extension
+					if strings.HasSuffix(ign, ".") {
+						if path.Ext(fname) != "" {
+							continue
+						}
+						ign = ign[:len(ign)-1]
+					}
+				}
 				if strings.HasSuffix(fname, ign[1:]) {
 					return true
 				}
@@ -175,7 +184,7 @@ func Select(fs http.FileSystem, patterns ...string) http.FileSystem {
 		if fi.IsDir() {
 			return selectDir(patterns, name)
 		}
-		return Matched(patterns, name, "", "")
+		return Matched(patterns, name, "", "", false)
 	})
 }
 
