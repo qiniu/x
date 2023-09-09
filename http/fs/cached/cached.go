@@ -126,6 +126,10 @@ func (p *dir) Read(b []byte) (n int, err error) {
 }
 
 func (p *dir) Seek(offset int64, whence int) (int64, error) {
+	if whence == io.SeekStart && offset == 0 {
+		p.off = 0
+		return 0, nil
+	}
 	return 0, fs.ErrPermission
 }
 

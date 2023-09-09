@@ -61,6 +61,116 @@ func Plugins(fs http.FileSystem, plugins ...interface{}) http.FileSystem {
 
 // -----------------------------------------------------------------------------------------
 
+// FileInfo describes a single file in an file system.
+// It implements fs.FileInfo and fs.DirEntry.
+type FileInfo struct {
+	name  string
+	size  int64
+	Mtime time.Time
+}
+
+// NewFileInfo creates a FileInfo that describes a single file in an file system.
+// It implements fs.FileInfo and fs.DirEntry.
+func NewFileInfo(name string, size int64) *FileInfo {
+	return &FileInfo{name: name, size: size}
+}
+
+// for fs.FileInfo, fs.DirEntry
+func (p *FileInfo) Name() string {
+	return p.name
+}
+
+// for fs.FileInfo
+func (p *FileInfo) Size() int64 {
+	return p.size
+}
+
+// for fs.FileInfo
+func (p *FileInfo) Mode() fs.FileMode {
+	return fs.ModeIrregular
+}
+
+// fs.DirEntry
+func (p *FileInfo) Type() fs.FileMode {
+	return fs.ModeIrregular
+}
+
+// for fs.FileInfo
+func (p *FileInfo) ModTime() time.Time {
+	return p.Mtime
+}
+
+// for fs.FileInfo, fs.DirEntry
+func (p *FileInfo) IsDir() bool {
+	return false
+}
+
+// fs.DirEntry
+func (p *FileInfo) Info() (fs.FileInfo, error) {
+	return p, nil
+}
+
+// for fs.FileInfo
+func (p *FileInfo) Sys() interface{} {
+	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+// DirInfo describes a single directory in an file system.
+// It implements fs.FileInfo and io.Closer and Stat().
+type DirInfo struct {
+	name string
+}
+
+// NewDirInfo creates a DirInfo that describes a single directory in an file system.
+// It implements fs.FileInfo and io.Closer and Stat().
+func NewDirInfo(name string) *DirInfo {
+	return &DirInfo{name}
+}
+
+// for fs.FileInfo, fs.DirEntry
+func (p *DirInfo) Name() string {
+	return p.name
+}
+
+// for fs.FileInfo
+func (p *DirInfo) Size() int64 {
+	return 0
+}
+
+// for fs.FileInfo
+func (p *DirInfo) Mode() fs.FileMode {
+	return fs.ModeIrregular | fs.ModeDir
+}
+
+// for fs.FileInfo
+func (p *DirInfo) ModTime() time.Time {
+	return time.Now()
+}
+
+// for fs.FileInfo, fs.DirEntry
+func (p *DirInfo) IsDir() bool {
+	return true
+}
+
+// for fs.FileInfo
+func (p *DirInfo) Sys() interface{} {
+	return nil
+}
+
+// for fs.File, http.File
+func (p *DirInfo) Stat() (fs.FileInfo, error) {
+	return p, nil
+}
+
+// io.Closer
+func (p *DirInfo) Close() error {
+	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
 type rootDir struct {
 }
 
@@ -109,6 +219,9 @@ func (p rootDir) Readdir(count int) ([]fs.FileInfo, error) {
 }
 
 func (p rootDir) Seek(offset int64, whence int) (int64, error) {
+	if whence == io.SeekStart && offset == 0 {
+		return 0, nil
+	}
 	return 0, io.EOF
 }
 

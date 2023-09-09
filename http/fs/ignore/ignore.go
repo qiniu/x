@@ -13,8 +13,8 @@ func Matched(ignore []string, fullName, dir, fname string) bool {
 }
 
 func New(fs http.FileSystem, patterns ...string) http.FileSystem {
-	return filter.New(fs, func(dir string, fi filter.DirEntry) bool {
-		return !filter.Matched(patterns, "", dir, fi.Name())
+	return filter.New(fs, func(name string, fi filter.DirEntry) bool {
+		return !filter.Matched(patterns, name, "", "")
 	})
 }
 
