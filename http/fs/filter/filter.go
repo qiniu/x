@@ -64,6 +64,9 @@ func Selected(patterns []string, name string, isDir bool) bool {
 }
 
 func selectDir(patterns []string, fullName string) bool {
+	if fullName == "/" {
+		return true
+	}
 	for _, ign := range patterns {
 		if strings.HasPrefix(ign, "/") { // start with /
 			if strings.HasSuffix(ign, "/") { // end with /
