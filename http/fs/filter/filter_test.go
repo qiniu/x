@@ -101,6 +101,20 @@ func TestMatchted(t *testing.T) {
 
 // -----------------------------------------------------------------------------------------
 
+func TestSelectRoot(t *testing.T) {
+	if !Selected([]string{"a.txt"}, "/", true) {
+		t.Fatal("Selected `a.txt`, `/`: fail")
+	}
+	if !Selected([]string{"/a/"}, "/", true) {
+		t.Fatal("Selected `/a/`, `/`: fail")
+	}
+	if !Selected([]string{"/a.txt"}, "/", true) {
+		t.Fatal("Selected `/a.txt`, `/`: fail")
+	}
+}
+
+// -----------------------------------------------------------------------------------------
+
 type openTestSel struct {
 	name string
 	n    int // n=1(one entry), n=0(no entry), n=-1(not exists)
