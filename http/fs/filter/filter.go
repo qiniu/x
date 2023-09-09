@@ -127,8 +127,11 @@ type fsFilter struct {
 }
 
 func (p *fsFilter) Open(name string) (f http.File, err error) {
-	if f, err = p.fs.Open(name); err != nil || name == "/" {
+	if f, err = p.fs.Open(name); err != nil {
 		return
+	}
+	if name == "/" { // don't filter root directory
+		return &filterDir{f, "/", p.filter}, nil
 	}
 	fi, err := f.Stat()
 	if err != nil {
@@ -159,12 +162,14 @@ type DirEntry interface {
 
 type FilterFunc = func(name string, fi DirEntry) bool
 
+// New creates a http.FileSystem with a (filter FilterFunc).
 func New(fs http.FileSystem, filter FilterFunc) http.FileSystem {
 	return &fsFilter{fs, filter}
 }
 
 // -----------------------------------------------------------------------------------------
 
+// Select creates a http.FileSystem with filter patterns.
 func Select(fs http.FileSystem, patterns ...string) http.FileSystem {
 	return New(fs, func(name string, fi DirEntry) bool {
 		if fi.IsDir() {
