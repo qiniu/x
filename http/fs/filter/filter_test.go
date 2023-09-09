@@ -15,6 +15,7 @@ type caseMatched struct {
 	name     string
 	dir      string
 	fname    string
+	isDir    bool
 	matched  bool
 }
 
@@ -71,9 +72,28 @@ func TestMatchted(t *testing.T) {
 			fname:    "a.txt",
 			matched:  true,
 		},
+		{
+			patterns: []string{"*."},
+			dir:      "/foo/bar",
+			fname:    "a.txt",
+			matched:  false,
+		},
+		{
+			patterns: []string{"*."},
+			dir:      "/foo/bar",
+			fname:    "abc",
+			matched:  true,
+		},
+		{
+			patterns: []string{"*."},
+			dir:      "/foo/bar",
+			fname:    "abc",
+			isDir:    true,
+			matched:  false,
+		},
 	}
 	for _, c := range cases {
-		if ret := Matched(c.patterns, c.name, c.dir, c.fname); ret != c.matched {
+		if ret := Matched(c.patterns, c.name, c.dir, c.fname, c.isDir); ret != c.matched {
 			t.Error("TestMatchted:", c.patterns, c.name, c.dir, c.fname, "expected:", c.matched, "ret:", ret)
 		}
 	}
