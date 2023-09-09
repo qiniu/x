@@ -107,7 +107,7 @@ func TestSelect(t *testing.T) {
 			patterns: []string{"/a.txt"},
 			name:     "/foo/bar/a.txt",
 			opens: []openTestSel{
-				{"/", 1},
+				{"/", 0},
 				{"/foo", -1},
 				{"/foo/bar/a.txt", -1},
 			},
