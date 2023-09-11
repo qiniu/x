@@ -71,6 +71,27 @@ func TestBuffer(t *testing.T) {
 	if n != 16 || err != io.EOF || string(buf[:n]) != "\x00Hi helLO world!" {
 		t.Fatal("ReadAt failed:", n, err, string(buf[:n]))
 	}
+
+	off := int64(b.Len())
+	b.Truncate(off + 1)
+	if n, err = b.ReadAt(buf[:1], off); n != 1 || err != nil || buf[0] != 0 {
+		t.Fatal("b.Truncate(off+1) failed:", n, err, buf[0])
+	}
+	if err := b.Truncate(1); err != nil || len(b.Buffer()) != 1 {
+		t.Fatal("b.Truncate(1) failed:", err)
+	}
+	b.WriteStringAt("123", 1)
+	if string(b.Buffer()) != "\x00123" {
+		t.Fatal("b.WriteStringAt 123:", string(b.Buffer()))
+	}
+	b.WriteAt([]byte("Hello!!! "), 0)
+	if string(b.Buffer()) != "Hello!!! " {
+		t.Fatal("b.WriteAt Hello!!! :", string(b.Buffer()))
+	}
+	b.WriteAt([]byte(" "), 9)
+	if string(b.Buffer()) != "Hello!!!  " {
+		t.Fatal("b.WriteAt :", string(b.Buffer()))
+	}
 }
 
 // ---------------------------------------------------
