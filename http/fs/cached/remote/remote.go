@@ -31,7 +31,8 @@ func SetDebug(dbgFlags int) {
 // -----------------------------------------------------------------------------------------
 
 const (
-	dirListCacheFile = ".bktls.cache"
+	SysFilePrefix    = ".fscache."
+	dirListCacheFile = SysFilePrefix + "ls"
 )
 
 func checkDirCached(dir string) fs.FileInfo {
@@ -135,7 +136,7 @@ func (p *remote) ReaddirAll(localDir string, dir *os.File, offline bool) (fis []
 	n := 0
 	for _, fi := range fis {
 		name := fi.Name()
-		if name == dirListCacheFile { // skip dir cache file
+		if strings.HasPrefix(name, SysFilePrefix) { // skip fscache system files
 			continue
 		}
 		if isRemote(fi) {
