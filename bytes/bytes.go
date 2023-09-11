@@ -31,17 +31,20 @@ type Reader struct {
 
 // NewReader create a readonly stream for byte slice:
 //
-//	 var slice []byte
-//	 ...
-//	 r := bytes.NewReader(slice)
-//	 ...
-//	 r.Seek(0, 0) // r.SeekToBegin()
-//	 ...
+//	var slice []byte
+//	...
+//	r := bytes.NewReader(slice)
+//	...
+//	r.Seek(0, 0) // r.SeekToBegin()
+//	...
 //
 // Unlike the standard library's bytes.Reader, the returned Reader supports Seek.
 func NewReader(val []byte) *Reader {
 	return &Reader{val, 0}
 }
+
+// Size returns the original length of the underlying byte slice.
+func (r *Reader) Size() int64 { return int64(len(r.b)) }
 
 func (r *Reader) Len() int {
 	if r.off >= len(r.b) {
@@ -61,10 +64,10 @@ func (r *Reader) SeekToBegin() (err error) {
 
 func (r *Reader) Seek(offset int64, whence int) (ret int64, err error) {
 	switch whence {
-	case 0:
-	case 1:
+	case io.SeekStart:
+	case io.SeekCurrent:
 		offset += int64(r.off)
-	case 2:
+	case io.SeekEnd:
 		offset += int64(len(r.b))
 	default:
 		err = syscall.EINVAL
@@ -107,10 +110,10 @@ type Writer struct {
 
 // NewWriter NewWriter creates a write stream with a limited capacity:
 //
-//	 slice := make([]byte, 1024)
-//	 w := bytes.NewWriter(slice)
-//	 ...
-//	 writtenData := w.Bytes()
+//	slice := make([]byte, 1024)
+//	w := bytes.NewWriter(slice)
+//	...
+//	writtenData := w.Bytes()
 //
 // If we write more than 1024 bytes of data to w, the excess data will be discarded.
 func NewWriter(buff []byte) *Writer {
@@ -149,13 +152,12 @@ type Buffer struct {
 // NewBuffer creates a random read/write memory file that supports ReadAt/WriteAt
 // methods instead of Read/Write:
 //
-//	 b := bytes.NewBuffer()
-//	 b.Truncate(100)
-//	 b.WriteAt([]byte("hello"), 100)
-//	 slice := make([]byte, 105)
-//	 n, err := b.ReadAt(slice, 0)
-//	 ...
-//
+//	b := bytes.NewBuffer()
+//	b.Truncate(100)
+//	b.WriteAt([]byte("hello"), 100)
+//	slice := make([]byte, 105)
+//	n, err := b.ReadAt(slice, 0)
+//	...
 func NewBuffer() *Buffer {
 	return new(Buffer)
 }
