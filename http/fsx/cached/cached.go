@@ -46,7 +46,7 @@ const (
 	confFileName = remote.SysFilePrefix + "conf"
 )
 
-type config struct {
+type Config struct {
 	Base      string `json:"base"` // url of base file system
 	CacheFile bool   `json:"cacheFile"`
 }
@@ -57,7 +57,7 @@ func New(ctx context.Context, localDir string, offline ...bool) (fs http.FileSys
 	if err != nil {
 		return
 	}
-	var conf config
+	var conf Config
 	err = json.Unmarshal(b, &conf)
 	if err != nil {
 		return
@@ -72,6 +72,15 @@ func New(ctx context.Context, localDir string, offline ...bool) (fs http.FileSys
 		close = nil
 	}
 	return
+}
+
+func WriteConf(localDir string, conf *Config) (err error) {
+	confFile := filepath.Join(localDir, confFileName)
+	b, err := json.MarshalIndent(conf, "", "  ")
+	if err != nil {
+		return
+	}
+	return os.WriteFile(confFile, b, 0644)
 }
 
 // -----------------------------------------------------------------------------------------

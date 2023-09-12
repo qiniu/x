@@ -60,12 +60,12 @@ func checkDirCached(dir string) fs.FileInfo {
 	return fi
 }
 
-func touchDirCached(dir string) error {
+func TouchDirCached(dir string) error {
 	cacheFile := filepath.Join(dir, dirListCacheFile)
 	return os.WriteFile(cacheFile, nil, 0666)
 }
 
-func writeStubFile(localFile string, fi fs.FileInfo) error {
+func WriteStubFile(localFile string, fi fs.FileInfo) error {
 	if fi.IsDir() {
 		return os.Mkdir(localFile, 0755)
 	}
@@ -188,11 +188,6 @@ func (p *remote) SyncLstat(local string, name string) (fi fs.FileInfo, err error
 }
 
 func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
-	if name == "/" {
-		name = "."
-	} else {
-		name = strings.TrimPrefix(name, "/")
-	}
 	f, err = p.bucket.Open(name)
 	if err != nil {
 		log.Printf(`[ERROR] bucket.Open("%s"): %v\n`, name, err)
@@ -215,12 +210,12 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 			base := filepath.Join(local, name)
 			for _, fi := range fis {
 				itemFile := base + "/" + fi.Name()
-				if writeStubFile(itemFile, fi) != nil {
+				if WriteStubFile(itemFile, fi) != nil {
 					nError++
 				}
 			}
 			if nError == 0 {
-				touchDirCached(base)
+				TouchDirCached(base)
 			} else {
 				log.Printf("[WARN] writeStubFile fail (%d errors)", nError)
 			}
