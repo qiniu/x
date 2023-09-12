@@ -258,3 +258,19 @@ func Root() http.FileSystem {
 }
 
 // -----------------------------------------------------------------------------------------
+
+// LocalCheck checks a file system is local or not.
+func LocalCheck(fsys http.FileSystem) (string, bool) {
+	d, ok := fsys.(http.Dir)
+	if ok {
+		return string(d), true
+	}
+	if lc, ok := fsys.(interface {
+		LocalCheck() (localDir string, ok bool)
+	}); ok {
+		return lc.LocalCheck()
+	}
+	return "", false
+}
+
+// -----------------------------------------------------------------------------------------
