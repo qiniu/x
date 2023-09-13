@@ -1,6 +1,9 @@
 package fs
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestParentFS(t *testing.T) {
 	fs := FilesWithContent("a.txt", "a")
@@ -11,6 +14,13 @@ func TestParentFS(t *testing.T) {
 	p := Parent("files", fs)
 	if _, err := p.Open("/files/a.txt"); err != nil {
 		t.Fatal(err)
+	}
+	_, err := p.Open("/a.txt")
+	if err == nil {
+		t.Fatal("expect error")
+	}
+	if !os.IsNotExist(err) {
+		t.Fatalf("expect os.IsNotExist(err) but got %v", err)
 	}
 }
 
