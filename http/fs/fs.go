@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -259,7 +260,51 @@ func Root() http.FileSystem {
 
 // -----------------------------------------------------------------------------------------
 
-// LocalCheck checks a file system is local or not.
+type parentFS struct {
+	parentDir string
+	fs        http.FileSystem
+}
+
+// Parent returns a FileSystem that fs is located in the `parentDir` directory.
+func Parent(parentDir string, fs http.FileSystem) http.FileSystem {
+	parentDir = strings.TrimSuffix(parentDir, "/")
+	if !strings.HasPrefix(parentDir, "/") {
+		parentDir = "/" + parentDir
+	}
+	return &parentFS{parentDir, fs}
+}
+
+func (p *parentFS) Open(name string) (f http.File, err error) {
+	if !strings.HasPrefix(name, p.parentDir) {
+		return nil, os.ErrNotExist
+	}
+	path := name[len(p.parentDir):]
+	return p.fs.Open(path)
+}
+
+// -----------------------------------------------------------------------------------------
+
+type subFS struct {
+	subDir string
+	fs     http.FileSystem
+}
+
+// Sub returns a FileSystem corresponding to the subtree rooted at fs's subDir.
+func Sub(fs http.FileSystem, subDir string) http.FileSystem {
+	subDir = strings.TrimSuffix(subDir, "/")
+	if !strings.HasPrefix(subDir, "/") {
+		subDir = "/" + subDir
+	}
+	return &subFS{subDir, fs}
+}
+
+func (p *subFS) Open(name string) (f http.File, err error) {
+	return p.fs.Open(p.subDir + name)
+}
+
+// -----------------------------------------------------------------------------------------
+
+// LocalCheck checks a FileSystem is local or not.
 func LocalCheck(fsys http.FileSystem) (string, bool) {
 	d, ok := fsys.(http.Dir)
 	if ok {
