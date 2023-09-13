@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -255,6 +256,48 @@ func (p rootDir) Open(name string) (f http.File, err error) {
 // Root implements a http.FileSystem that only have a root directory.
 func Root() http.FileSystem {
 	return rootDir{}
+}
+
+// -----------------------------------------------------------------------------------------
+
+type parentFS struct {
+	parent string
+	fs     http.FileSystem
+}
+
+func Parent(parent string, fs http.FileSystem) http.FileSystem {
+	parent = strings.TrimSuffix(parent, "/")
+	if !strings.HasPrefix(parent, "/") {
+		parent = "/" + parent
+	}
+	return &parentFS{parent, fs}
+}
+
+func (p *parentFS) Open(name string) (f http.File, err error) {
+	if !strings.HasPrefix(name, p.parent) {
+		return nil, os.ErrNotExist
+	}
+	path := name[len(p.parent):]
+	return p.fs.Open(path)
+}
+
+// -----------------------------------------------------------------------------------------
+
+type subFS struct {
+	sub string
+	fs  http.FileSystem
+}
+
+func Sub(sub string, fs http.FileSystem) http.FileSystem {
+	sub = strings.TrimSuffix(sub, "/")
+	if !strings.HasPrefix(sub, "/") {
+		sub = "/" + sub
+	}
+	return &subFS{sub, fs}
+}
+
+func (p *subFS) Open(name string) (f http.File, err error) {
+	return p.fs.Open(p.sub + name)
 }
 
 // -----------------------------------------------------------------------------------------
