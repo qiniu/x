@@ -261,43 +261,43 @@ func Root() http.FileSystem {
 // -----------------------------------------------------------------------------------------
 
 type parentFS struct {
-	parent string
-	fs     http.FileSystem
+	parentDir string
+	fs        http.FileSystem
 }
 
-func Parent(parent string, fs http.FileSystem) http.FileSystem {
-	parent = strings.TrimSuffix(parent, "/")
-	if !strings.HasPrefix(parent, "/") {
-		parent = "/" + parent
+func Parent(parentDir string, fs http.FileSystem) http.FileSystem {
+	parentDir = strings.TrimSuffix(parentDir, "/")
+	if !strings.HasPrefix(parentDir, "/") {
+		parentDir = "/" + parentDir
 	}
-	return &parentFS{parent, fs}
+	return &parentFS{parentDir, fs}
 }
 
 func (p *parentFS) Open(name string) (f http.File, err error) {
-	if !strings.HasPrefix(name, p.parent) {
+	if !strings.HasPrefix(name, p.parentDir) {
 		return nil, os.ErrNotExist
 	}
-	path := name[len(p.parent):]
+	path := name[len(p.parentDir):]
 	return p.fs.Open(path)
 }
 
 // -----------------------------------------------------------------------------------------
 
 type subFS struct {
-	sub string
-	fs  http.FileSystem
+	subDir string
+	fs     http.FileSystem
 }
 
-func Sub(sub string, fs http.FileSystem) http.FileSystem {
-	sub = strings.TrimSuffix(sub, "/")
-	if !strings.HasPrefix(sub, "/") {
-		sub = "/" + sub
+func Sub(fs http.FileSystem, subDir string) http.FileSystem {
+	subDir = strings.TrimSuffix(subDir, "/")
+	if !strings.HasPrefix(subDir, "/") {
+		subDir = "/" + subDir
 	}
-	return &subFS{sub, fs}
+	return &subFS{subDir, fs}
 }
 
 func (p *subFS) Open(name string) (f http.File, err error) {
-	return p.fs.Open(p.sub + name)
+	return p.fs.Open(p.subDir + name)
 }
 
 // -----------------------------------------------------------------------------------------

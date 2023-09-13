@@ -30,7 +30,7 @@ func TestSubFS(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := Sub("files", fs)
+	s := Sub(fs, "files")
 	if _, err := s.Open("/a.txt"); err != nil {
 		t.Fatal(err)
 	}
