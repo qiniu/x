@@ -265,6 +265,7 @@ type parentFS struct {
 	fs        http.FileSystem
 }
 
+// Parent returns a FileSystem that fs is located in the `parentDir` directory.
 func Parent(parentDir string, fs http.FileSystem) http.FileSystem {
 	parentDir = strings.TrimSuffix(parentDir, "/")
 	if !strings.HasPrefix(parentDir, "/") {
@@ -288,6 +289,7 @@ type subFS struct {
 	fs     http.FileSystem
 }
 
+// Sub returns a FileSystem corresponding to the subtree rooted at fs's subDir.
 func Sub(fs http.FileSystem, subDir string) http.FileSystem {
 	subDir = strings.TrimSuffix(subDir, "/")
 	if !strings.HasPrefix(subDir, "/") {
@@ -298,6 +300,22 @@ func Sub(fs http.FileSystem, subDir string) http.FileSystem {
 
 func (p *subFS) Open(name string) (f http.File, err error) {
 	return p.fs.Open(p.subDir + name)
+}
+
+// -----------------------------------------------------------------------------------------
+
+// LocalCheck checks a FileSystem is local or not.
+func LocalCheck(fsys http.FileSystem) (string, bool) {
+	d, ok := fsys.(http.Dir)
+	if ok {
+		return string(d), true
+	}
+	if lc, ok := fsys.(interface {
+		LocalCheck() (localDir string, ok bool)
+	}); ok {
+		return lc.LocalCheck()
+	}
+	return "", false
 }
 
 // -----------------------------------------------------------------------------------------

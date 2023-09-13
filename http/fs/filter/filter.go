@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
+	xfs "github.com/qiniu/x/http/fs"
 )
 
 // -----------------------------------------------------------------------------------------
@@ -181,6 +183,10 @@ func (p *fsFilter) Open(name string) (f http.File, err error) {
 		f = &filterDir{f, name + "/", p.filter}
 	}
 	return
+}
+
+func (p *fsFilter) LocalCheck() (localDir string, ok bool) {
+	return xfs.LocalCheck(p.fs)
 }
 
 // -----------------------------------------------------------------------------------------
