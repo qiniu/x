@@ -151,7 +151,7 @@ func (p *stream) Sys() interface{} {
 
 // SequenceFile implements a http.File by a io.ReadCloser object.
 func SequenceFile(name string, body io.ReadCloser) http.File {
-	return &stream{file: body}
+	return &stream{name: name, file: body}
 }
 
 // -----------------------------------------------------------------------------------------

@@ -157,7 +157,14 @@ func (p *TestCase) assertNotPanic() {
 func (p *TestCase) Equal(vals ...interface{}) *TestCase {
 	p.assertNotPanic()
 	for i, v := range vals {
-		p.assertEq(p.out[p.idx+i].Interface(), v)
+		a := p.out[p.idx+i]
+		if v == nil {
+			if a.IsValid() && !a.IsZero() {
+				p.t.Fatalf("%s:\nassertEq failed: %v, expected: nil\n", string(p.msg), a)
+			}
+		} else {
+			p.assertEq(a.Interface(), v)
+		}
 	}
 	return p
 }
