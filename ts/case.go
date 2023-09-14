@@ -123,7 +123,8 @@ func (p *TestCase) With(i int) *TestCase {
 	return p
 }
 
-// Panic checks if function call panics or not. Panic(v) means
+// Panic checks if function call panics or not. Panic() means
+// the function call doesn't panic at all, and Panic(v) means
 // function call panics with `v`. If v == nil, it means we don't
 // care any detail information about panic.
 func (p *TestCase) Panic(panicMsg ...interface{}) *TestCase {
@@ -153,9 +154,11 @@ func (p *TestCase) assertNotPanic() {
 }
 
 // Equal checks current output value.
-func (p *TestCase) Equal(v interface{}) *TestCase {
+func (p *TestCase) Equal(vals ...interface{}) *TestCase {
 	p.assertNotPanic()
-	p.assertEq(p.out[p.idx].Interface(), v)
+	for i, v := range vals {
+		p.assertEq(p.out[p.idx+i].Interface(), v)
+	}
 	return p
 }
 
