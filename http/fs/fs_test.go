@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -16,6 +17,81 @@ import (
 )
 
 // -----------------------------------------------------------------------------------------
+
+type iStream interface {
+	http.File
+	TryReader() *bytes.Reader
+	FullName() string
+	Size() int64
+	ModTime() time.Time
+}
+
+type expectStm struct {
+	br       *bytes.Reader
+	fullName string
+	readN    int
+	readErr  error
+	size     int64
+	modt     time.Time
+	unseek   io.ReadCloser
+}
+
+type sizeModt struct {
+	errCloser
+}
+
+func (sizeModt) Size() int64 {
+	return 123
+}
+
+func (sizeModt) ModTime() time.Time {
+	return time.Time{}
+}
+
+func testIS(t *testing.T, stm iStream, exp *expectStm) {
+	ts := ts.New(t)
+	ts.Case("TryReader", stm.TryReader()).Equal(exp.br)
+	ts.Case("FullName", stm.FullName()).Equal(exp.fullName)
+	ts.New("stm.Read").Init(stm.Read(make([]byte, 1))).Equal(exp.readN, exp.readErr)
+	ts.Case("stm.Size", stm.Size()).Equal(exp.size)
+	ts.Case("stm.ModTime", stm.ModTime()).Equal(exp.modt)
+	ts.Case("Unseekable", Unseekable(stm) != exp.unseek).Equal(true)
+}
+
+func TestStream(t *testing.T) {
+	br := bytes.NewReader([]byte("a"))
+	file := &sizeModt{}
+	stm := &stream{br: br, file: file}
+	testIS(t, stm, &expectStm{br: br, readN: 1, size: 123})
+	br.Seek(0, io.SeekStart)
+	ti := time.Now().Format(http.TimeFormat)
+	stm2 := &httpFile{br: br, file: file, resp: &http.Response{ContentLength: 123, Body: file, Header: http.Header{
+		"Last-Modified": []string{ti},
+	}}}
+	modt, err := http.ParseTime(ti)
+	if err != nil {
+		t.Fatal("http.ParseTime:", err)
+	}
+	testIS(t, stm2, &expectStm{br: br, readN: 1, size: 123, modt: modt})
+	stm.br = nil
+	if f := Unseekable(stm); f != file {
+		t.Fatal("Unseekable:", f)
+	}
+	stm2.br = nil
+	if f := Unseekable(stm2); f != file {
+		t.Fatal("Unseekable:", f)
+	}
+}
+
+// -----------------------------------------------------------------------------------------
+
+type errCloser struct {
+	io.Reader
+}
+
+func (p *errCloser) Close() error {
+	return fs.ErrPermission
+}
 
 type statCloser interface {
 	io.Closer
@@ -84,9 +160,17 @@ func TestHttpFile(t *testing.T) {
 		w.WriteHeader(500)
 	}))
 	err500 := fmt.Errorf("http.Get %s error: status %d (%s)", "http://c.com/", 500, "")
-	testFile(t, Http("http://a.com", context.TODO()).With(mockClient, nil), &expectFile{name: "/", readdirErr: fs.ErrInvalid, readN: 1})
-	testFile(t, Http("http://b.com").With(mockClient, nil), &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://b.com/", Err: fs.ErrNotExist}})
-	testFile(t, Http("http://c.com").With(mockClient, nil), &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://c.com/", Err: err500}})
+	aCom := Http("http://a.com", context.TODO()).With(mockClient, nil)
+	bCom := Http("http://b.com").With(mockClient, nil)
+	cCom := Http("http://c.com").With(mockClient, nil)
+	testFile(t, aCom, &expectFile{name: "/", readdirErr: fs.ErrInvalid, readN: 1})
+	testFile(t, bCom, &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://b.com/", Err: fs.ErrNotExist}})
+	testFile(t, cCom, &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://c.com/", Err: err500}})
+	track := WithTracker(Root(), "http://a.com", ".txt").(*fsWithTracker)
+	track.httpfs = aCom
+	testFile(t, track, &expectFile{name: "/foo.txt", readdirErr: fs.ErrInvalid, readN: 1})
+	testFile(t, WithTracker(bCom, aCom, ".txt"), &expectFile{name: "/bar.jpg", openErr: &fs.PathError{Op: "http.Get", Path: "http://b.com/bar.jpg", Err: fs.ErrNotExist}})
+	testFile(t, SequenceFile("/foo/bar.txt", &errCloser{strings.NewReader("a")}), &expectFile{close: fs.ErrPermission, readdirErr: fs.ErrInvalid, readN: 1})
 }
 
 var (
