@@ -17,6 +17,14 @@ import (
 
 // -----------------------------------------------------------------------------------------
 
+type errCloser struct {
+	io.Reader
+}
+
+func (p *errCloser) Close() error {
+	return fs.ErrPermission
+}
+
 type statCloser interface {
 	io.Closer
 	Stat() (fs.FileInfo, error)
@@ -84,9 +92,17 @@ func TestHttpFile(t *testing.T) {
 		w.WriteHeader(500)
 	}))
 	err500 := fmt.Errorf("http.Get %s error: status %d (%s)", "http://c.com/", 500, "")
-	testFile(t, Http("http://a.com", context.TODO()).With(mockClient, nil), &expectFile{name: "/", readdirErr: fs.ErrInvalid, readN: 1})
-	testFile(t, Http("http://b.com").With(mockClient, nil), &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://b.com/", Err: fs.ErrNotExist}})
-	testFile(t, Http("http://c.com").With(mockClient, nil), &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://c.com/", Err: err500}})
+	aCom := Http("http://a.com", context.TODO()).With(mockClient, nil)
+	bCom := Http("http://b.com").With(mockClient, nil)
+	cCom := Http("http://c.com").With(mockClient, nil)
+	testFile(t, aCom, &expectFile{name: "/", readdirErr: fs.ErrInvalid, readN: 1})
+	testFile(t, bCom, &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://b.com/", Err: fs.ErrNotExist}})
+	testFile(t, cCom, &expectFile{name: "/", openErr: &fs.PathError{Op: "http.Get", Path: "http://c.com/", Err: err500}})
+	track := WithTracker(Root(), "http://a.com", ".txt").(*fsWithTracker)
+	track.httpfs = aCom
+	testFile(t, track, &expectFile{name: "/foo.txt", readdirErr: fs.ErrInvalid, readN: 1})
+	testFile(t, WithTracker(bCom, aCom, ".txt"), &expectFile{name: "/bar.jpg", openErr: &fs.PathError{Op: "http.Get", Path: "http://b.com/bar.jpg", Err: fs.ErrNotExist}})
+	testFile(t, SequenceFile("/foo/bar.txt", &errCloser{strings.NewReader("a")}), &expectFile{close: fs.ErrPermission, readdirErr: fs.ErrInvalid, readN: 1})
 }
 
 var (
