@@ -43,14 +43,19 @@ func (p *Testing) New(name string) *TestCase {
 	return &TestCase{name: name, t: p.t}
 }
 
-// Call creates a test case, and then calls a function.
+// Call creates a test case without name, and calls a function.
 func (p *Testing) Call(fn interface{}, args ...interface{}) *TestCase {
 	return p.New("").Call(fn, args...)
 }
 
-// Case creates a test case and sets its output parameters.
+// Case creates a test case with name and sets its output parameters.
 func (p *Testing) Case(name string, result ...interface{}) *TestCase {
 	return p.New(name).Init(result...)
+}
+
+// Init creates a test case without name and sets its output parameters.
+func (p *Testing) Init(result ...interface{}) *TestCase {
+	return p.New("").Init(result...)
 }
 
 // ----------------------------------------------------------------------------
