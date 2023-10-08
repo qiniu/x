@@ -82,6 +82,10 @@ func IsNotFound(err error) bool {
 type List []error
 
 func (p *List) Add(err error) {
+	if l, ok := err.(List); ok {
+		*p = append(*p, l...)
+		return
+	}
 	*p = append(*p, err)
 }
 
