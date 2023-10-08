@@ -79,8 +79,10 @@ func IsNotFound(err error) bool {
 
 // --------------------------------------------------------------------
 
+// List represents a list of errors.
 type List []error
 
+// Add adds an error into the error list.
 func (p *List) Add(err error) {
 	if l, ok := err.(List); ok {
 		*p = append(*p, l...)
@@ -89,6 +91,7 @@ func (p *List) Add(err error) {
 	*p = append(*p, err)
 }
 
+// Error returns all errors joined with "\n".
 func (p List) Error() string {
 	n := len(p)
 	if n >= 2 {
@@ -104,6 +107,7 @@ func (p List) Error() string {
 	return ""
 }
 
+// Summary returns summary of all errors.
 func (p List) Summary() string {
 	n := len(p)
 	if n >= 2 {
@@ -119,6 +123,10 @@ func (p List) Summary() string {
 	return ""
 }
 
+// ToError converts error list into an error.
+// If list length == 0, it returns nil;
+// If list length == 1, it returns the list item.
+// If list length > 1, it returns the error list itself.
 func (p List) ToError() error {
 	switch len(p) {
 	case 1:
