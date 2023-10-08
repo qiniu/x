@@ -1,6 +1,23 @@
+/*
+ Copyright 2022 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package cmdline
 
 import (
+	"io"
 	"reflect"
 	"testing"
 )
@@ -8,7 +25,6 @@ import (
 // ---------------------------------------------------------------------------
 
 func equalErr(err error, errExp interface{}) bool {
-
 	if err == nil || errExp == nil {
 		return err == nil && errExp == nil
 	}
@@ -18,20 +34,22 @@ func equalErr(err error, errExp interface{}) bool {
 // ---------------------------------------------------------------------------
 
 func TestComment(t *testing.T) {
-
 	execSub := false
-	ctx := Parser{
-		ExecSub: func(code string) (string, error) {
-			execSub = true
-			return "[" + code + "]", nil
-		},
-		Escape: func(c byte) string {
-			return string(c)
-		},
+	ctx := NewParser()
+	ret, err := ctx.ExecSub("")
+	if ret != "" || err != ErrUnsupportedFeatureSubCmd {
+		t.Fatal("ExecSub:", ret, err)
+	}
+	ctx.ExecSub = func(code string) (string, error) {
+		execSub = true
+		return "[" + code + "]", nil
+	}
+	ctx.Escape = func(c byte) string {
+		return string(c)
 	}
 
 	cmd, codeNext, err := ctx.ParseCode("#abc `calc $(a)+$(b)`")
-	if err != EOF || codeNext != "" {
+	if err != io.EOF || codeNext != "" {
 		t.Fatal("ParseCode: eof is expected")
 	}
 	if execSub {
@@ -52,7 +70,6 @@ type caseParse struct {
 }
 
 func TestParse(t *testing.T) {
-
 	cases := []caseParse{
 		{
 			code:     ";b",
@@ -160,6 +177,9 @@ func TestParse(t *testing.T) {
 	}
 	for _, c := range cases {
 		cmd, codeNext, err := ctx.ParseCode(c.code)
+		if c.err == "end of file" {
+			c.err = io.EOF.Error()
+		}
 		if !equalErr(err, c.err) {
 			t.Fatal("Parse failed:", c, err)
 		}

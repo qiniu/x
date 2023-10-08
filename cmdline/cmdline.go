@@ -1,7 +1,24 @@
+/*
+ Copyright 2022 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package cmdline
 
 import (
 	"errors"
+	"io"
 	"strings"
 
 	. "github.com/qiniu/x/ctype"
@@ -9,20 +26,14 @@ import (
 
 /* ---------------------------------------------------------------------------
 
-Shell 基础规则：
+Shell Syntax Rules:
 
-* 多行字符串：用 '...' 或 "..."。其中 " 会自动转义 $(var)，而 ' 不会。
-* 普通字符串：用 [ \t] 分隔。转义符以 \ 开头。
-* 外部命令：`...`。
+* Multiline string: '...' or "...", and "..." supports $(var)
+* Multiline string: ```\n...``` or ===\n...===
+* Normal string: use [ \t] as string seperator and escape with '\'
+* External command: `...` or |...|
 
-七牛规则：
-
-* 外部命令： `...` 或 |...| 。
-* 多行字符串：用 '...' 或 ```\n...``` 或 ===\n...=== 不转义。用 "..."，支持以 \ 开头的转义，也支持外部命令。
-* 普通字符串：用 [ \t] 分隔。转义符以 \ 开头，同时也支持外部命令。
-* 关于 $(var) 支持：每个命令自己执行 $(var) 的展开。不统一执行的原因是，在不同上下文需要不同的转义方式。
-
-样例：
+Examples:
 
 post http://rs.qiniu.com/delete/`base64 Bucket:Key`
 auth `qbox AccessKey SecretKey`
@@ -45,7 +56,6 @@ equal $(code1) 200
 // -------------------------------------------------------------------------*/
 
 var (
-	EOF                               = errors.New("end of file")
 	ErrUnsupportedFeatureSubCmd       = errors.New("unsupported feature: sub command")
 	ErrUnsupportedFeatureMultiCmds    = errors.New("unsupported feature: multi commands")
 	ErrInvalidEscapeChar              = errors.New("invalid escape char")
@@ -61,7 +71,6 @@ var (
 // ---------------------------------------------------------------------------
 
 func Skip(str string, typeMask uint32) string {
-
 	for i := 0; i < len(str); i++ {
 		if !Is(typeMask, rune(str[i])) {
 			return str[i:]
@@ -71,7 +80,6 @@ func Skip(str string, typeMask uint32) string {
 }
 
 func Find(str string, typeMask uint32) (n int) {
-
 	for n = 0; n < len(str); n++ {
 		if Is(typeMask, rune(str[n])) {
 			break
@@ -83,9 +91,7 @@ func Find(str string, typeMask uint32) (n int) {
 // ---------------------------------------------------------------------------
 
 // EOL = \r\n? | \n
-//
 func requireEOL(code string) (hasEOL bool, codeNext string) {
-
 	if strings.HasPrefix(code, "\r") {
 		if strings.HasPrefix(code[1:], "\n") {
 			return true, code[2:]
@@ -105,7 +111,6 @@ type Parser struct {
 }
 
 func NewParser() *Parser {
-
 	return &Parser{
 		ExecSub: defaultExecSub,
 		Escape:  defaultEscape,
@@ -129,9 +134,7 @@ const (
 	endMask_NonquotString = RDIV | BACKTICK | OR | blankAndEOLs // [\\`| \t\r\n;]
 )
 
-func (p *Parser) parseString(
-	code string, endMask uint32) (item string, ok bool, codeNext string, err error) {
-
+func (p *Parser) parseString(code string, endMask uint32) (item string, ok bool, codeNext string, err error) {
 	codeNext = code
 	for {
 		n := Find(codeNext, endMask)
@@ -144,7 +147,7 @@ func (p *Parser) parseString(
 			if endMask == endMask_QuotString {
 				err = ErrIncompleteStringExpectQuot
 			} else {
-				err = EOF
+				err = io.EOF
 			}
 			return
 		}
@@ -186,15 +189,12 @@ func (p *Parser) parseString(
 		}
 		ok = true
 	}
-	return
 }
 
-func (p *Parser) parseItem(
-	code string, skipMask uint32) (item string, ok bool, codeNext string, err error) {
-
+func (p *Parser) parseItem(code string, skipMask uint32) (item string, ok bool, codeNext string, err error) {
 	codeNext = Skip(code, skipMask)
 	if len(codeNext) == 0 {
-		err = EOF
+		err = io.EOF
 		return
 	}
 
@@ -225,9 +225,8 @@ func (p *Parser) parseItem(
 }
 
 func (p *Parser) ParseCmd(cmdline string) (cmd []string, err error) {
-
 	cmd, _, err = p.ParseCode(cmdline)
-	if err == EOF && len(cmd) > 0 {
+	if err == io.EOF && len(cmd) > 0 {
 		return cmd, nil
 	}
 	if err == nil {
@@ -237,7 +236,6 @@ func (p *Parser) ParseCmd(cmdline string) (cmd []string, err error) {
 }
 
 func (p *Parser) ParseCode(code string) (cmd []string, codeNext string, err error) {
-
 	item, ok, codeNext, err := p.parseItem(code, blankAndEOLs)
 	if !ok {
 		return
