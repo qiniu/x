@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package event_test
+package label_test
 
 import (
 	"context"
@@ -125,13 +125,13 @@ func Benchmark(b *testing.B) {
 	}
 }
 
-func A(ctx context.Context, hooks Hooks, a int) int {
+func fA(ctx context.Context, hooks Hooks, a int) int {
 	ctx, done := hooks.A(ctx, a)
 	defer done()
-	return B(ctx, hooks, a, stringList[a%len(stringList)])
+	return fB(ctx, hooks, a, stringList[a%len(stringList)])
 }
 
-func B(ctx context.Context, hooks Hooks, a int, b string) int {
+func fB(ctx context.Context, hooks Hooks, a int, b string) int {
 	_, done := hooks.B(ctx, b)
 	defer done()
 	return a + len(b)
@@ -144,7 +144,7 @@ func (hooks Hooks) runBenchmark(b *testing.B) {
 	var acc int
 	for i := 0; i < b.N; i++ {
 		for _, value := range initialList {
-			acc += A(ctx, hooks, value)
+			acc += fA(ctx, hooks, value)
 		}
 	}
 }
