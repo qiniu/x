@@ -22,11 +22,10 @@ const (
 	Lmicroseconds                                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
 	Llongfile                                     // full file name and line number: /a/b/c/d.go:23
 	Lshortfile                                    // final file name element and line number: d.go:23. overrides Llongfile
-	Lmodule                                       // module name
 	Llevel                                        // level: 0(Debug), 1(Info), 2(Warn), 3(Error), 4(Panic), 5(Fatal)
 	LstdFlags     = Ldate | Ltime | Lmicroseconds // initial values for the standard logger
-	Ldefault      = Lmodule | Llevel | Lshortfile | LstdFlags
-) // [prefix][time][level][module][shortfile|longfile]
+	Ldefault      = Llevel | Lshortfile | LstdFlags
+) // [prefix][time][level][shortfile|longfile]
 
 const (
 	// Ldebug is a log output level that prints debug information.
@@ -104,9 +103,6 @@ func itoa(buf *bytes.Buffer, i int, wid int) {
 
 func shortFile(file string, flag int) string {
 	sep := "/"
-	if (flag & Lmodule) != 0 {
-		sep = "/src/"
-	}
 	pos := strings.LastIndex(file, sep)
 	if pos != -1 {
 		return file[pos+5:]
@@ -180,7 +176,7 @@ func (l *Logger) Output(reqID string, lvl int, calldepth int, s string) error {
 	var line int
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if l.flag&(Lshortfile|Llongfile|Lmodule) != 0 {
+	if l.flag&(Lshortfile|Llongfile) != 0 {
 		// release lock while getting caller info - it's expensive.
 		l.mu.Unlock()
 		var ok bool
