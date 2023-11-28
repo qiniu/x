@@ -1,3 +1,6 @@
+//go:build unix
+// +build unix
+
 package log
 
 import (
