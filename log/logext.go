@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -17,15 +19,16 @@ const (
 	// order they appear (the order listed here) or the format they present (as
 	// described in the comments).  A colon appears after these items:
 	//	2009/0123 01:23:23.123123 /a/b/c/d.go:23: message
-	Ldate         = 1 << iota                     // the date: 2009/0123
-	Ltime                                         // the time: 01:23:23
-	Lmicroseconds                                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
-	Llongfile                                     // full file name and line number: /a/b/c/d.go:23
-	Lshortfile                                    // final file name element and line number: d.go:23. overrides Llongfile
-	Llevel                                        // level: 0(Debug), 1(Info), 2(Warn), 3(Error), 4(Panic), 5(Fatal)
-	LstdFlags     = Ldate | Ltime | Lmicroseconds // initial values for the standard logger
-	Ldefault      = Llevel | Lshortfile | LstdFlags
-) // [prefix][time][level][shortfile|longfile]
+	Ldate             = 1 << iota                     // the date: 2009/0123
+	Ltime                                             // the time: 01:23:23
+	Lmicroseconds                                     // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+	Llongfile                                         // full file name and line number: /a/b/c/d.go:23
+	Lshortfile                                        // final file name element and line number: d.go:23. overrides Llongfile
+	Lintermediatefile                                 // final file format output is typically in the format c/d.go:23, which includes the last two paths. If the compilation includes the '-trimpath' parameter, this format will just exclude the module path prefix.
+	Llevel                                            // level: 0(Debug), 1(Info), 2(Warn), 3(Error), 4(Panic), 5(Fatal)
+	LstdFlags         = Ldate | Ltime | Lmicroseconds // initial values for the standard logger
+	Ldefault          = Llevel | Lintermediatefile | LstdFlags
+) // [prefix][time][level][shortfile|longfile|intermediatefile]: message
 
 const (
 	// Ldebug is a log output level that prints debug information.
@@ -49,6 +52,17 @@ var levels = []string{
 	"[ERROR]",
 	"[PANIC]",
 	"[FATAL]",
+}
+
+// module path which will be used as the prefix to be trimmed.
+var modulePath string
+
+func init() {
+	info, ok := debug.ReadBuildInfo()
+	if ok {
+		// initialize module path.
+		modulePath = info.Main.Path
+	}
 }
 
 // A Logger represents an active logging object that generates lines of
@@ -101,13 +115,30 @@ func itoa(buf *bytes.Buffer, i int, wid int) {
 	}
 }
 
-func shortFile(file string, flag int) string {
-	sep := "/"
-	pos := strings.LastIndex(file, sep)
-	if pos != -1 {
-		return file[pos+5:]
+func trimModPrefix(file string) string {
+	return strings.TrimPrefix(file, modulePath+"/")
+}
+
+// formatFile returns last two path elements if file path is absolute path,
+// otherwise return the path which relative to the module path.
+func formatFile(file string, lastN int) string {
+	if !filepath.IsAbs(file) {
+		return trimModPrefix(file)
 	}
-	return file
+
+	var lastNthSlash = -1
+	var path = file
+	for lastN > 0 {
+		lastN--
+		if pos := strings.LastIndex(path, "/"); pos >= 0 {
+			lastNthSlash = pos
+			path = path[:pos]
+		} else {
+			lastNthSlash = -1
+			break
+		}
+	}
+	return file[lastNthSlash+1:]
 }
 
 func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line int, lvl int, reqID string) {
@@ -147,9 +178,11 @@ func (l *Logger) formatHeader(buf *bytes.Buffer, t time.Time, file string, line 
 	if flag&Llevel != 0 {
 		buf.WriteString(levels[lvl])
 	}
-	if flag&(Lshortfile|Llongfile) != 0 {
-		if flag&Lshortfile != 0 {
-			file = shortFile(file, flag)
+	if flag&(Lshortfile|Llongfile|Lintermediatefile) != 0 {
+		if l.flag&Lintermediatefile != 0 {
+			file = formatFile(file, 2)
+		} else if l.flag&Lshortfile != 0 {
+			file = formatFile(file, 1)
 		}
 		buf.WriteByte(' ')
 		buf.WriteString(file)
@@ -176,7 +209,7 @@ func (l *Logger) Output(reqID string, lvl int, calldepth int, s string) error {
 	var line int
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if l.flag&(Lshortfile|Llongfile) != 0 {
+	if l.flag&(Lshortfile|Llongfile|Lintermediatefile) != 0 {
 		// release lock while getting caller info - it's expensive.
 		l.mu.Unlock()
 		var ok bool
