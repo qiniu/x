@@ -18,7 +18,6 @@ const (
 	Lmicroseconds = log.Lmicroseconds
 	Llongfile     = log.Llongfile
 	Lshortfile    = log.Lshortfile
-	Lmodule       = log.Lmodule
 	Llevel        = log.Llevel
 	LstdFlags     = log.LstdFlags
 	Ldefault      = log.Ldefault
