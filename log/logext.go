@@ -119,7 +119,7 @@ func trimModPrefix(file string) string {
 	return strings.TrimPrefix(file, modulePath+"/")
 }
 
-// formatFile returns last two path elements if file path is absolute path,
+// formatFile returns last N path elements if file path is absolute path,
 // otherwise return the path which relative to the module path.
 func formatFile(file string, lastN int) string {
 	if !filepath.IsAbs(file) {
