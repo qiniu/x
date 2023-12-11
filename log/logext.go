@@ -19,13 +19,15 @@ const (
 	// order they appear (the order listed here) or the format they present (as
 	// described in the comments).  A colon appears after these items:
 	//	2009/0123 01:23:23.123123 /a/b/c/d.go:23: message
-	Ldate             = 1 << iota                     // the date: 2009/0123
-	Ltime                                             // the time: 01:23:23
-	Lmicroseconds                                     // microsecond resolution: 01:23:23.123123.  assumes Ltime.
-	Llongfile                                         // full file name and line number: /a/b/c/d.go:23
-	Lshortfile                                        // final file name element and line number: d.go:23. overrides Llongfile
-	Lintermediatefile                                 // final file format output is typically in the format c/d.go:23, which includes the last two paths. If the compilation includes the '-trimpath' parameter, this format will just exclude the module path prefix.
+	Ldate         = 1 << iota // the date: 2009/0123
+	Ltime                     // the time: 01:23:23
+	Lmicroseconds             // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+	Llongfile                 // full file name and line number: /a/b/c/d.go:23
+	Lshortfile                // final file name element and line number: d.go:23. overrides Llongfile
+	// Deprecated: recommend to use Lintermediatefile option instead.
+	Lmodule                                           // module name
 	Llevel                                            // level: 0(Debug), 1(Info), 2(Warn), 3(Error), 4(Panic), 5(Fatal)
+	Lintermediatefile                                 // final file format output is typically in the format c/d.go:23, which includes the last two paths. If the compilation includes the '-trimpath' parameter, this format will just exclude the module path prefix.
 	LstdFlags         = Ldate | Ltime | Lmicroseconds // initial values for the standard logger
 	Ldefault          = Llevel | Lintermediatefile | LstdFlags
 ) // [prefix][time][level][shortfile|longfile|intermediatefile]: message
