@@ -1,3 +1,19 @@
+/*
+ Copyright 2020 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package mockhttp_test
 
 import (
@@ -5,8 +21,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"testing"
@@ -47,7 +63,7 @@ func (p *FooServer) handle(w http.ResponseWriter, req *http.Request) {
 }
 
 func (p *FooServer) postDump(w http.ResponseWriter, req *http.Request) {
-	req.Body.Close()
+	// req.Body.Close()
 	io.Copy(w, req.Body)
 }
 
@@ -64,6 +80,7 @@ func TestBasic(t *testing.T) {
 	server := new(FooServer)
 	server.RegisterHandlers(http.DefaultServeMux)
 
+	mockhttp.DefaultTransport.SetRemoteAddr("127.0.0.1:8080")
 	mockhttp.ListenAndServe("foo.com", nil)
 
 	ctx := context.TODO()
@@ -96,18 +113,27 @@ func TestBasic(t *testing.T) {
 			t.Fatal("post foo failed:", err)
 		}
 		resp.Body.Close()
-		resp, err = c.Post("http://foo.com/dump", "", strings.NewReader("abc"))
+		resp, err = c.Post("http://foo.com/dump", "", strings.NewReader("hello"))
 		if err != nil {
 			t.Fatal("post foo failed:", err)
 		}
 		defer resp.Body.Close()
-		b, err := ioutil.ReadAll(resp.Body)
+		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Fatal("ioutil.ReadAll:", err)
 		}
-		if len(b) != 0 {
-			t.Fatal("body should be empty:", string(b))
+		if v := string(b); v != "hello" {
+			t.Fatal("body:", v)
 		}
+	}
+}
+
+func TestErrRoundTrip(t *testing.T) {
+	tr := mockhttp.NewTransport()
+	if _, err := tr.RoundTrip(&http.Request{
+		URL: &url.URL{Host: "unknown.com"},
+	}); err != mockhttp.ErrServerNotFound {
+		t.Fatal("TestErrRoundTrip:", err)
 	}
 }
 
