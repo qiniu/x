@@ -1,9 +1,24 @@
+/*
+ Copyright 2020 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package mockhttp
 
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -38,13 +53,15 @@ func (r *mockServerRequestBody) Close() error {
 }
 
 // --------------------------------------------------------------------
-// type Transport
 
+// Transport is an mock implementation of RoundTripper that supports HTTP,
+// HTTPS, and HTTP proxies (for either HTTP or HTTPS with CONNECT).
 type Transport struct {
 	route      map[string]http.Handler
 	remoteAddr string
 }
 
+// NewTransport creates a new mock RoundTripper object.
 func NewTransport() *Transport {
 	return &Transport{
 		route:      make(map[string]http.Handler),
@@ -52,18 +69,24 @@ func NewTransport() *Transport {
 	}
 }
 
+// SetRemoteAddr sets the remote network address.
 func (p *Transport) SetRemoteAddr(remoteAddr string) *Transport {
 	p.remoteAddr = remoteAddr
 	return p
 }
 
-func (p *Transport) ListenAndServe(host string, h http.Handler) {
+// ListenAndServe listens on a mock network address addr and handler
+// to handle requests on incoming connections.
+func (p *Transport) ListenAndServe(host string, h http.Handler) error {
 	if h == nil {
 		h = http.DefaultServeMux
 	}
 	p.route[host] = h
+	return nil
 }
 
+// RoundTrip executes a single HTTP transaction, returning
+// a Response for the provided Request.
 func (p *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	h := p.route[req.URL.Host]
 	if h == nil {
@@ -90,7 +113,7 @@ func (p *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 		Status:           "",
 		StatusCode:       rw.Code,
 		Header:           rw.Header(),
-		Body:             ioutil.NopCloser(rw.Body),
+		Body:             io.NopCloser(rw.Body),
 		ContentLength:    ctlen,
 		TransferEncoding: nil,
 		Close:            false,
@@ -104,8 +127,10 @@ func (p *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 var DefaultTransport = NewTransport()
 var DefaultClient = &http.Client{Transport: DefaultTransport}
 
-func ListenAndServe(host string, h http.Handler) {
-	DefaultTransport.ListenAndServe(host, h)
+// ListenAndServe uses DefaultTransport to listen on a mock network address
+// addr and handler to handle requests on incoming connections.
+func ListenAndServe(host string, h http.Handler) error {
+	return DefaultTransport.ListenAndServe(host, h)
 }
 
 // --------------------------------------------------------------------
