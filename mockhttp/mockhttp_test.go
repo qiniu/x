@@ -63,7 +63,6 @@ func (p *FooServer) handle(w http.ResponseWriter, req *http.Request) {
 }
 
 func (p *FooServer) postDump(w http.ResponseWriter, req *http.Request) {
-	// req.Body.Close()
 	io.Copy(w, req.Body)
 }
 
