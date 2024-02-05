@@ -1,3 +1,19 @@
+/*
+ Copyright 2019 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package ctype
 
 const (
@@ -38,6 +54,7 @@ const (
 	SPACE                = SPACE_BAR | TSPACE
 	PATH_SEP             = DIV | RDIV
 	ALPHA                = UPPER | LOWER
+	FLOAT_FIRST_CHAT     = DIGIT | DOT
 	SYMBOL_FIRST_CHAR    = ALPHA
 	SYMBOL_NEXT_CHAR     = SYMBOL_FIRST_CHAR | DIGIT
 	CSYMBOL_FIRST_CHAR   = ALPHA | UNDERLINE
@@ -184,16 +201,16 @@ var table = []uint32{
 
 // -----------------------------------------------------------
 
+// Is checks if a rune meets specified typeMask or not.
 func Is(typeMask uint32, c rune) bool {
-
 	if uint(c) < uint(len(table)) {
 		return (typeMask & table[c]) != 0
 	}
 	return false
 }
 
+// IsType checks if all runes of a string meet specified typeMask or not.
 func IsType(typeMask uint32, str string) bool {
-
 	if str == "" {
 		return false
 	}
@@ -205,8 +222,20 @@ func IsType(typeMask uint32, str string) bool {
 	return true
 }
 
-func IsTypeEx(typeFirst, typeNext uint32, str string) bool {
+// ScanType scans a string to find a rune that doesn't meet specified typeMask.
+// if not found, it returns -1.
+func ScanType(typeMask uint32, str string) int {
+	for i, c := range str {
+		if !Is(typeMask, c) {
+			return i
+		}
+	}
+	return -1
+}
 
+// IsTypeEx checks if the first rune of a string meets typeFirst, and
+// the other runes meet typeNext.
+func IsTypeEx(typeFirst, typeNext uint32, str string) bool {
 	if str == "" {
 		return false
 	}
@@ -224,14 +253,63 @@ func IsTypeEx(typeFirst, typeNext uint32, str string) bool {
 	return true
 }
 
-func IsCSymbol(str string) bool {
+func ScanTypeEx(typeFirst, typeNext uint32, str string) int {
+	for i, c := range str {
+		if i > 0 {
+			if !Is(typeNext, c) {
+				return i
+			}
+		} else {
+			if !Is(typeFirst, c) {
+				return i
+			}
+		}
+	}
+	return -1
+}
 
+func SkipTypeEx(typeFirst, typeNext uint32, str string) string {
+	pos := ScanTypeEx(typeFirst, typeNext, str)
+	if pos < 0 {
+		return ""
+	}
+	return str[pos:]
+}
+
+// IsCSymbol checks specified string meets a C symbol or not.
+func IsCSymbol(str string) bool {
 	return IsTypeEx(CSYMBOL_FIRST_CHAR, CSYMBOL_NEXT_CHAR, str)
 }
 
-func IsXmlSymbol(str string) bool {
+// ScanCSymbol skips a C symbol and returns its end position. If
+// the string does not start with a C symbol, it returns 0. If there
+// are no other characters after the C symbol, it returns -1.
+func ScanCSymbol(str string) int {
+	return ScanTypeEx(CSYMBOL_FIRST_CHAR, CSYMBOL_NEXT_CHAR, str)
+}
 
+// SkipCSymbol scans a string to skip a C symbol. If the string
+// doesn't start with a C symbol, it returns the origin string.
+func SkipCSymbol(str string) string {
+	return SkipTypeEx(CSYMBOL_FIRST_CHAR, CSYMBOL_NEXT_CHAR, str)
+}
+
+// IsXmlSymbol checks specified string meets a XML symbol or not.
+func IsXmlSymbol(str string) bool {
 	return IsTypeEx(XMLSYMBOL_FIRST_CHAR, XMLSYMBOL_NEXT_CHAR, str)
+}
+
+// ScanXmlSymbol skips a XML symbol and returns its end position. If
+// the string does not start with a XML symbol, it returns 0. If there
+// are no other characters after the XML symbol, it returns -1.
+func ScanXmlSymbol(str string) int {
+	return ScanTypeEx(XMLSYMBOL_FIRST_CHAR, XMLSYMBOL_NEXT_CHAR, str)
+}
+
+// SkipXmlSymbol scans a string to skip a XML symbol. If the string
+// doesn't start with a XML symbol, it returns the origin string.
+func SkipXmlSymbol(str string) string {
+	return SkipTypeEx(XMLSYMBOL_FIRST_CHAR, XMLSYMBOL_NEXT_CHAR, str)
 }
 
 // -----------------------------------------------------------
