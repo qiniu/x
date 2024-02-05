@@ -1,6 +1,22 @@
 //go:build unix
 // +build unix
 
+/*
+Copyright 2019 Qiniu Limited (qiniu.com)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package log
 
 import (
@@ -9,6 +25,42 @@ import (
 	"strings"
 	"testing"
 )
+
+func TestBasicf(t *testing.T) {
+	doSth := func(lvl int) {
+		old := Std.Level
+		defer func() {
+			Std.Level = old
+		}()
+		Std.Level = lvl
+		fns := []func(format string, v ...interface{}){
+			Debugf, Infof, Warnf, Errorf,
+		}
+		for _, fn := range fns {
+			fn("log %d\n", 100)
+		}
+	}
+	doSth(Ldebug)
+	doSth(Lfatal)
+}
+
+func TestBasic(t *testing.T) {
+	doSth := func(lvl int) {
+		old := Std.Level
+		defer func() {
+			Std.Level = old
+		}()
+		Std.Level = lvl
+		fns := []func(v ...interface{}){
+			Debug, Info, Warn, Error,
+		}
+		for _, fn := range fns {
+			fn("log", 100)
+		}
+	}
+	doSth(Ldebug)
+	doSth(Lfatal)
+}
 
 func TestFormatFile(t *testing.T) {
 	tcs := []struct {
@@ -60,7 +112,7 @@ func TestLongFile(t *testing.T) {
 	logx := New(&out, Std.Prefix(), Llongfile|Llevel|LstdFlags)
 	logx.Info("hello")
 	result := out.String()
-	suffix := "x/log/logext_test.go:61: hello\n"
+	suffix := "x/log/logext_test.go:113: hello\n"
 	if !strings.HasSuffix(result, suffix) {
 		t.Errorf("Llongfile mode, logx.Info() = %v, which expected to include suffix %v ", result, suffix)
 	}
@@ -71,7 +123,7 @@ func TestShortFile(t *testing.T) {
 	logx := New(&out, Std.Prefix(), Lshortfile|Llevel|LstdFlags)
 	logx.Info("hello")
 	result := out.String()
-	suffix := "logext_test.go:72: hello\n"
+	suffix := "logext_test.go:124: hello\n"
 	if !strings.HasSuffix(result, suffix) {
 		t.Errorf("Lshortfile mode, logx.Info() = %v, which expected to include suffix %v ", result, suffix)
 	}
