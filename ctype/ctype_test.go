@@ -1,3 +1,19 @@
+/*
+ Copyright 2019 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package ctype
 
 import (
@@ -48,6 +64,9 @@ var strCases = []stringTestCase{
 }
 
 func TestIs(t *testing.T) {
+	if Is(0, 255) {
+		t.Fatal("Is(0, 255)")
+	}
 	for _, a := range isCases {
 		f := Is(a.mask, a.c)
 		if f != a.is {
@@ -67,6 +86,123 @@ func TestIsTypeEx(t *testing.T) {
 			if f != a.is {
 				t.Fatal("case:", a, "result:", f)
 			}
+		}
+	}
+}
+
+func TestIsCSymbol(t *testing.T) {
+	type testCase struct {
+		str string
+		is  bool
+	}
+	cases := []testCase{
+		{"123", false},
+		{"_123", true},
+	}
+	for _, c := range cases {
+		if ret := IsCSymbol(c.str); ret != c.is {
+			t.Fatal("IsCSymbol:", c.str, "got:", ret)
+		}
+	}
+}
+
+func TestIsXmlSymbol(t *testing.T) {
+	type testCase struct {
+		str string
+		is  bool
+	}
+	cases := []testCase{
+		{"123", false},
+		{"_123", true},
+	}
+	for _, c := range cases {
+		if ret := IsXmlSymbol(c.str); ret != c.is {
+			t.Fatal("IsXmlSymbol:", c.str, "got:", ret)
+		}
+	}
+}
+
+func TestScanType(t *testing.T) {
+	type testCase struct {
+		str string
+		pos int
+	}
+	cases := []testCase{
+		{"123", 0},
+		{"_123", 1},
+		{"_xml", -1},
+	}
+	for _, c := range cases {
+		if ret := ScanType(CSYMBOL_FIRST_CHAR, c.str); ret != c.pos {
+			t.Fatal("ScanType:", c.str, "got:", ret)
+		}
+	}
+}
+
+func TestScanCSymbol(t *testing.T) {
+	type testCase struct {
+		str string
+		pos int
+	}
+	cases := []testCase{
+		{"123", 0},
+		{"_123", -1},
+		{"_123 xml", 4},
+	}
+	for _, c := range cases {
+		if ret := ScanCSymbol(c.str); ret != c.pos {
+			t.Fatal("ScanCSymbol:", c.str, "got:", ret)
+		}
+	}
+}
+
+func TestScanXmlSymbol(t *testing.T) {
+	type testCase struct {
+		str string
+		pos int
+	}
+	cases := []testCase{
+		{"123", 0},
+		{"_123", -1},
+		{"_123 xml", 4},
+	}
+	for _, c := range cases {
+		if ret := ScanXmlSymbol(c.str); ret != c.pos {
+			t.Fatal("ScanXmlSymbol:", c.str, "got:", ret)
+		}
+	}
+}
+
+func TestSkipXmlSymbol(t *testing.T) {
+	type testCase struct {
+		str string
+		ret string
+	}
+	cases := []testCase{
+		{"123", "123"},
+		{"_123", ""},
+		{"_123 xml", " xml"},
+	}
+	for _, c := range cases {
+		if ret := SkipXmlSymbol(c.str); ret != c.ret {
+			t.Fatal("SkipXmlSymbol:", c.str, "got:", ret)
+		}
+	}
+}
+
+func TestSkipCSymbol(t *testing.T) {
+	type testCase struct {
+		str string
+		ret string
+	}
+	cases := []testCase{
+		{"123", "123"},
+		{"_123", ""},
+		{"_123 xml", " xml"},
+	}
+	for _, c := range cases {
+		if ret := SkipCSymbol(c.str); ret != c.ret {
+			t.Fatal("SkipCSymbol:", c.str, "got:", ret)
 		}
 	}
 }
