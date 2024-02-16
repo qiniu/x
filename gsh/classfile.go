@@ -23,6 +23,10 @@ import (
 	"os/exec"
 )
 
+const (
+	GopPackage = true
+)
+
 // App is project class of this classfile.
 type App struct {
 	fout io.Writer
