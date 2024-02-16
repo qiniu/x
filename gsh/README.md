@@ -21,7 +21,7 @@ mkdir "testgsh"
 Then run it:
 
 ```sh
-gop run example.gsh
+gop run ./example.gsh
 ```
 
 It's strange to you that the file extension of Go+ source is not `.gop` but `.gsh`. It is only because Go+ register `.gsh` as a builtin [classfile](https://github.com/goplus/gop/blob/main/doc/classfile.md).
