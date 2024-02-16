@@ -40,10 +40,10 @@ if lastErr != nil {
 	panic lastErr
 }
 
-capout => { ls }
+output => { ls }
 println output.fields
 
-capout => { ls "-l" }
+output => { ls "-l" }
 files := [file{flds[8], flds[4].int!} for e <- output.split("\n") if flds := e.fields; flds.len > 2]
 println files
 
@@ -85,7 +85,7 @@ This is the most familiar way to Go developers.
 And, `gsh` provides a way to capture output of commands:
 
 ```coffee
-capout => {
+output => {
     ...
 }
 ```
@@ -95,7 +95,7 @@ Similar to `lastErr`, the captured output result is saved to `output`.
 For an example:
 
 ```coffee
-capout => { ls "-l" }
+output => { ls "-l" }
 println output
 ```
 
