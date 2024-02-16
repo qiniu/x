@@ -115,7 +115,7 @@ total 72
 -rw-r--r--  1 xushiwei  staff   1938 Jun 19 10:00 gop_autogen.go
 ```
 
-We can use [Go+ powerful built-in data processing capabilities](doc/docs.md#data-processing) to process captured `output`:
+We can use [Go+ powerful built-in data processing capabilities](https://github.com/goplus/gop/blob/main/doc/docs.md#data-processing) to process captured `output`:
 
 ```coffee
 type file struct {
