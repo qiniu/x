@@ -57,6 +57,32 @@ func (p *App) LastErr() error {
 	return p.err
 }
 
+// ExitCode returns exit code of last command execution. Bash-scripting exit codes:
+// 1: Catchall for general errors
+// 2: Misuse of shell builtins (according to Bash documentation)
+// 126: Command invoked cannot execute
+// 127: Command not found
+// 128+n: Fatal error signal "n"
+// 254: Unknown error(*)
+func (p *App) ExitCode() int {
+	if p.err == nil {
+		return 0
+	}
+	switch e := p.err.(type) {
+	case *exec.ExitError:
+		return e.ProcessState.ExitCode()
+	default:
+		switch e.Error() {
+		case "exec: no command":
+			return 127
+		case "exec: not started":
+			return 126
+		default:
+			return 254
+		}
+	}
+}
+
 // Capout captures stdout of doSth() execution and save it to output.
 func (p *App) Capout(doSth func()) (string, error) {
 	var out bytes.Buffer
