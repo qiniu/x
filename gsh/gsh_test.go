@@ -79,7 +79,7 @@ func (p *myApp) MainEntry() {
 	t := p.t
 	err := p.Gop_Exec("ls", "-l")
 	check(t, err)
-	err = p.Exec__1("ls", "-l")
+	err = p.Exec__2("ls", "-l")
 	check(t, err)
 }
 
@@ -119,7 +119,7 @@ func TestExecSh(t *testing.T) {
 	var app App
 	app.initApp()
 	capout(&app, func() {
-		err := app.Exec__2("FOO=123 ./app $BAR")
+		err := app.Exec__1("FOO=123 ./app $BAR")
 		check(t, err)
 	})
 	if v := app.Output(); v != "[FOO=123 BAR=bar] [./app bar]\n" {
@@ -131,7 +131,7 @@ func TestExecSh2(t *testing.T) {
 	var app App
 	app.initApp()
 	capout(&app, func() {
-		err := app.Exec__2("FOO=$BAR ./app $FOO")
+		err := app.Exec__1("FOO=$BAR ./app $FOO")
 		check(t, err)
 	})
 	if v := app.Output(); v != "[FOO=bar BAR=bar] [./app bar]\n" {
@@ -142,7 +142,7 @@ func TestExecSh2(t *testing.T) {
 func TestExecSh3(t *testing.T) {
 	var app App
 	app.initApp()
-	err := app.Exec__2("FOO=$BAR X=1")
+	err := app.Exec__1("FOO=$BAR X=1")
 	checkErr(t, err, "exec: no command")
 }
 
@@ -150,7 +150,7 @@ func TestExecSh4(t *testing.T) {
 	var app App
 	app.initApp()
 	capout(&app, func() {
-		err := app.Exec__2("FOO=$BAR X=1 ./app")
+		err := app.Exec__1("FOO=$BAR X=1 ./app")
 		check(t, err)
 	})
 	if v := app.Output(); v != "[FOO=bar BAR=bar X=1] [./app]\n" {
