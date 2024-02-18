@@ -68,15 +68,10 @@ func (p *App) Exec__0(env map[string]string, name string, args ...string) error 
 	return p.execWith(cmdEnv, name, args...)
 }
 
-// Exec executes a shell command.
-func (p *App) Exec__1(name string, args ...string) error {
-	return p.execWith(nil, name, args...)
-}
-
 // Exec executes a shell command line with $env variables support.
 //   - exec "GOP_GOCMD=tinygo gop run ."
 //   - exec "ls -l $HOME"
-func (p *App) Exec__2(cmdline string) error {
+func (p *App) Exec__1(cmdline string) error {
 	var iCmd = -1
 	var items = strings.Fields(cmdline)
 	var env []string
@@ -114,6 +109,11 @@ func (p *App) Exec__2(cmdline string) error {
 		initEnv()
 	}
 	return p.execWith(env, items[iCmd], items[iCmd+1:]...)
+}
+
+// Exec executes a shell command.
+func (p *App) Exec__2(name string, args ...string) error {
+	return p.execWith(nil, name, args...)
 }
 
 // LastErr returns error of last command execution.
