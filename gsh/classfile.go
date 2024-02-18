@@ -42,14 +42,29 @@ func (p *App) initApp() {
 	p.ferr = os.Stderr
 }
 
-// Gop_Exec executes a shell command.
-func (p *App) Gop_Exec(name string, args ...string) error {
+// Exec executes a shell command with specified environs.
+func (p *App) Exec__0(env map[string]string, name string, args ...string) error {
+	var cmdEnv []string
+	if env != nil {
+		cmdEnv = Setenv__0(os.Environ(), env)
+	}
 	cmd := exec.Command(name, args...)
 	cmd.Stdin = p.fin
 	cmd.Stdout = p.fout
 	cmd.Stderr = p.ferr
+	cmd.Env = cmdEnv
 	p.err = cmd.Run()
 	return p.err
+}
+
+// Exec executes a shell command.
+func (p *App) Exec__1(name string, args ...string) error {
+	return p.Exec__0(nil, name, args...)
+}
+
+// Gop_Exec executes a shell command.
+func (p *App) Gop_Exec(name string, args ...string) error {
+	return p.Exec__0(nil, name, args...)
 }
 
 // LastErr returns error of last command execution.
