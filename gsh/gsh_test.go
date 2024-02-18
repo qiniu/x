@@ -87,6 +87,22 @@ func TestMainEntry(t *testing.T) {
 	Gopt_App_Main(&myApp{t: t})
 }
 
+func TestOS(t *testing.T) {
+	var sys defaultOS
+	sys.Environ()
+	sys.ExpandEnv("foo")
+	sys.Run(new(exec.Cmd))
+}
+
+func TestEnv(t *testing.T) {
+	if Getenv(nil, "foo") != "" {
+		t.Fatal("TestEnv: Getenv")
+	}
+	if ret := Setenv__1(nil, "k", "v"); len(ret) != 1 || ret[0] != "k=v" {
+		t.Fatal("TestEnv Setenv:", ret)
+	}
+}
+
 func TestExecWithEnv(t *testing.T) {
 	var app App
 	app.initApp()
