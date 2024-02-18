@@ -18,9 +18,11 @@ package gsh
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 const (
@@ -42,14 +44,76 @@ func (p *App) initApp() {
 	p.ferr = os.Stderr
 }
 
-// Gop_Exec executes a shell command.
-func (p *App) Gop_Exec(name string, args ...string) error {
+func (p *App) execWith(env []string, name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdin = p.fin
 	cmd.Stdout = p.fout
 	cmd.Stderr = p.ferr
-	p.err = cmd.Run()
+	cmd.Env = env
+	p.err = Sys.Run(cmd)
 	return p.err
+}
+
+// Gop_Exec executes a shell command.
+func (p *App) Gop_Exec(name string, args ...string) error {
+	return p.execWith(nil, name, args...)
+}
+
+// Exec executes a shell command with specified environs.
+func (p *App) Exec__0(env map[string]string, name string, args ...string) error {
+	var cmdEnv []string
+	if env != nil {
+		cmdEnv = Setenv__0(Sys.Environ(), env)
+	}
+	return p.execWith(cmdEnv, name, args...)
+}
+
+// Exec executes a shell command.
+func (p *App) Exec__1(name string, args ...string) error {
+	return p.execWith(nil, name, args...)
+}
+
+// Exec executes a shell command line with $env variables support.
+//   - exec "GOP_GOCMD=tinygo gop run ."
+//   - exec "ls -l $HOME"
+func (p *App) Exec__2(cmdline string) error {
+	var iCmd = -1
+	var items = strings.Fields(cmdline)
+	var env []string
+	var initEnv = func() {
+		env = Sys.Environ()
+		if iCmd > 0 {
+			env = Setenv__2(env, items[:iCmd])
+		}
+	}
+	var mapping = func(name string) string {
+		if env == nil {
+			initEnv()
+		}
+		return Getenv(env, name)
+	}
+	for i, e := range items {
+		pos := strings.IndexAny(e, "=$")
+		if pos >= 0 && e[pos] == '=' {
+			if strings.IndexByte(e[pos+1:], '$') >= 0 {
+				items[i] = Sys.ExpandEnv(e)
+			}
+			continue
+		}
+		if iCmd < 0 {
+			iCmd = i
+		}
+		if pos >= 0 {
+			items[i] = os.Expand(e, mapping)
+		}
+	}
+	if iCmd < 0 {
+		return errors.New("exec: no command")
+	}
+	if env == nil && iCmd > 0 {
+		initEnv()
+	}
+	return p.execWith(env, items[iCmd], items[iCmd+1:]...)
 }
 
 // LastErr returns error of last command execution.
