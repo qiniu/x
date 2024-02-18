@@ -17,7 +17,7 @@
 package gsh
 
 import (
-	"io"
+	"fmt"
 	"os"
 	"os/exec"
 	"testing"
@@ -36,29 +36,50 @@ func (p mockOS) ExpandEnv(s string) string {
 }
 
 func (p mockOS) Run(c *exec.Cmd) error {
-	if mockRunOut != "" {
-		io.WriteString(c.Stdout, mockRunOut)
+	if mockEcho {
+		fmt.Fprintln(c.Stdout, c.Env, c.Args)
 	}
 	return mockRunErr
 }
 
 var (
-	mockEnv    []string
-	mockRunOut string
+	mockEnv    = []string{"FOO=foo", "BAR=bar"}
 	mockRunErr error
+	mockEcho   bool
 )
 
 func init() {
 	Sys = mockOS{}
 }
 
+func capout(app *App, doSth func()) (ret string, err error) {
+	mockEcho = true
+	ret, err = app.Capout(doSth)
+	mockEcho = false
+	return
+}
+
 // -----------------------------------------------------------
+
+type M map[string]string
 
 func TestBasic(t *testing.T) {
 	var app App
 	app.initApp()
 	err := app.Gop_Exec("ls", "-l")
 	check(t, err)
+}
+
+func TestExecWithEnv(t *testing.T) {
+	var app App
+	app.initApp()
+	capout(&app, func() {
+		err := app.Exec__0(M{"FOO": "123"}, "./app", "$FOO")
+		check(t, err)
+	})
+	if v := app.Output(); v != "[FOO=123 BAR=bar] [./app $FOO]\n" {
+		t.Fatal("TestExecWithEnv:", v)
+	}
 }
 
 func check(t *testing.T, err error) {
