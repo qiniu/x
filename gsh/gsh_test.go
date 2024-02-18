@@ -17,6 +17,7 @@
 package gsh
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -59,6 +60,12 @@ func capout(app *App, doSth func()) (ret string, err error) {
 	return
 }
 
+func lasterr(app *App, err error) {
+	mockRunErr = err
+	app.Gop_Exec("ls")
+	mockRunErr = nil
+}
+
 // -----------------------------------------------------------
 
 type M map[string]string
@@ -67,6 +74,8 @@ func TestBasic(t *testing.T) {
 	var app App
 	app.initApp()
 	err := app.Gop_Exec("ls", "-l")
+	check(t, err)
+	err = app.Exec__1("ls", "-l")
 	check(t, err)
 }
 
@@ -82,9 +91,85 @@ func TestExecWithEnv(t *testing.T) {
 	}
 }
 
+func TestExecSh(t *testing.T) {
+	var app App
+	app.initApp()
+	capout(&app, func() {
+		err := app.Exec__2("FOO=123 ./app $BAR")
+		check(t, err)
+	})
+	if v := app.Output(); v != "[FOO=123 BAR=bar] [./app bar]\n" {
+		t.Fatal("TestExecSh:", v)
+	}
+}
+
+func TestExecSh2(t *testing.T) {
+	var app App
+	app.initApp()
+	capout(&app, func() {
+		err := app.Exec__2("FOO=$BAR ./app $FOO")
+		check(t, err)
+	})
+	if v := app.Output(); v != "[FOO=bar BAR=bar] [./app bar]\n" {
+		t.Fatal("TestExecSh2:", v)
+	}
+}
+
+func TestExecSh3(t *testing.T) {
+	var app App
+	app.initApp()
+	err := app.Exec__2("FOO=$BAR X=1")
+	checkErr(t, err, "exec: no command")
+}
+
+func TestExecSh4(t *testing.T) {
+	var app App
+	app.initApp()
+	capout(&app, func() {
+		err := app.Exec__2("FOO=$BAR X=1 ./app")
+		check(t, err)
+	})
+	if v := app.Output(); v != "[FOO=bar BAR=bar X=1] [./app]\n" {
+		t.Fatal("TestExecSh4:", v)
+	}
+}
+
+func TestExitCode(t *testing.T) {
+	var app App
+	app.initApp()
+	lasterr(&app, nil)
+	check(t, app.LastErr())
+	if v := app.ExitCode(); v != 0 {
+		t.Fatal("ExitCode:", v)
+	}
+	lasterr(&app, errors.New("exec: no command"))
+	if v := app.ExitCode(); v != 127 {
+		t.Fatal("ExitCode:", v)
+	}
+	lasterr(&app, errors.New("exec: not started"))
+	if v := app.ExitCode(); v != 126 {
+		t.Fatal("ExitCode:", v)
+	}
+	lasterr(&app, errors.New("unknown"))
+	if v := app.ExitCode(); v != 254 {
+		t.Fatal("ExitCode:", v)
+	}
+	lasterr(&app, new(exec.ExitError))
+	if v := app.ExitCode(); v != -1 {
+		t.Fatal("ExitCode:", v)
+	}
+}
+
 func check(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func checkErr(t *testing.T, err error, msg string) {
+	t.Helper()
+	if err == nil || err.Error() != msg {
 		t.Fatal(err)
 	}
 }
