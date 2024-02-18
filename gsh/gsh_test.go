@@ -70,13 +70,21 @@ func lasterr(app *App, err error) {
 
 type M map[string]string
 
-func TestBasic(t *testing.T) {
-	var app App
-	app.initApp()
-	err := app.Gop_Exec("ls", "-l")
+type myApp struct {
+	App
+	t *testing.T
+}
+
+func (p *myApp) MainEntry() {
+	t := p.t
+	err := p.Gop_Exec("ls", "-l")
 	check(t, err)
-	err = app.Exec__1("ls", "-l")
+	err = p.Exec__1("ls", "-l")
 	check(t, err)
+}
+
+func TestMainEntry(t *testing.T) {
+	Gopt_App_Main(&myApp{t: t})
 }
 
 func TestExecWithEnv(t *testing.T) {
