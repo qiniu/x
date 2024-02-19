@@ -62,7 +62,7 @@ func (p *App) Gop_Exec(name string, args ...string) error {
 // Exec executes a shell command with specified environs.
 func (p *App) Exec__0(env map[string]string, name string, args ...string) error {
 	var cmdEnv []string
-	if env != nil {
+	if len(env) > 0 {
 		cmdEnv = Setenv__0(Sys.Environ(), env)
 	}
 	return p.execWith(cmdEnv, name, args...)
