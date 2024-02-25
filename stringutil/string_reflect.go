@@ -29,7 +29,7 @@ import (
 // Since Go strings are immutable, the bytes passed to String
 // must not be modified afterwards.
 func String(b []byte) (s string) {
-	sh := *(*reflect.StringHeader)(unsafe.Pointer(&s))
+	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
 	bh := *(*reflect.SliceHeader)(unsafe.Pointer(&b))
 	sh.Data, sh.Len = bh.Data, bh.Len
 	return
