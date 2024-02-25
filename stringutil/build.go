@@ -24,7 +24,12 @@ type Builder struct {
 }
 
 // NewBuilder creates a new Builder object.
-func NewBuilder(ncap int) *Builder {
+func NewBuilder(b []byte) *Builder {
+	return &Builder{b: b}
+}
+
+// NewBuilderSize creates a new Builder object whose buffer has at least the specified size.
+func NewBuilderSize(ncap int) *Builder {
 	return &Builder{b: make([]byte, 0, ncap)}
 }
 
