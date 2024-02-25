@@ -23,6 +23,9 @@ import (
 )
 
 func TestConcat(t *testing.T) {
+	if ret := Concat("1"); ret != "1" {
+		t.Fatal("Concat(1):", ret)
+	}
 	if ret := Concat("1", "23", "!"); ret != "123!" {
 		t.Fatal("Concat:", ret)
 	}
