@@ -36,6 +36,10 @@ func (p mockOS) ExpandEnv(s string) string {
 	})
 }
 
+func (p mockOS) Getenv(key string) string {
+	return Getenv(mockEnv, key)
+}
+
 func (p mockOS) Run(c *exec.Cmd) error {
 	if mockEcho {
 		fmt.Fprintln(c.Stdout, c.Env, c.Args)
@@ -91,6 +95,7 @@ func TestOS(t *testing.T) {
 	var sys defaultOS
 	sys.Environ()
 	sys.ExpandEnv("foo")
+	sys.Getenv("foo")
 	sys.Run(new(exec.Cmd))
 }
 
@@ -106,6 +111,9 @@ func TestEnv(t *testing.T) {
 func TestExecWithEnv(t *testing.T) {
 	var app App
 	app.initApp()
+	if v := app.Gop_Env("BAR"); v != "bar" {
+		t.Fatal("app.Gop_Env:", v)
+	}
 	capout(&app, func() {
 		err := app.Exec__0(M{"FOO": "123"}, "./app", "$FOO")
 		check(t, err)
