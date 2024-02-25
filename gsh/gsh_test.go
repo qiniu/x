@@ -27,7 +27,7 @@ import (
 type mockOS struct{}
 
 func (p mockOS) Environ() []string {
-	return mockEnv
+	return append(make([]string, 0, len(mockEnv)), mockEnv...)
 }
 
 func (p mockOS) ExpandEnv(s string) string {
@@ -142,7 +142,19 @@ func TestExecSh2(t *testing.T) {
 		err := app.Exec__1("FOO=$BAR ./app $FOO")
 		check(t, err)
 	})
-	if v := app.Output(); v != "[FOO=bar BAR=bar] [./app bar]\n" {
+	if v := app.Output(); v != "[FOO=bar BAR=bar] [./app foo]\n" {
+		t.Fatal("TestExecSh2:", v)
+	}
+}
+
+func TestExecSh2_Env(t *testing.T) {
+	var app App
+	app.initApp()
+	capout(&app, func() {
+		err := app.Exec__1("FOO=$BAR ./app ${FOO}")
+		check(t, err)
+	})
+	if v := app.Output(); v != "[FOO=bar BAR=bar] [./app foo]\n" {
 		t.Fatal("TestExecSh2:", v)
 	}
 }

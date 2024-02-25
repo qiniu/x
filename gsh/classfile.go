@@ -79,19 +79,6 @@ func (p *App) Exec__0(env map[string]string, name string, args ...string) error 
 func (p *App) Exec__1(cmdline string) error {
 	var iCmd = -1
 	var items = strings.Fields(cmdline)
-	var env []string
-	var initEnv = func() {
-		env = Sys.Environ()
-		if iCmd > 0 {
-			env = Setenv__2(env, items[:iCmd])
-		}
-	}
-	var mapping = func(name string) string {
-		if env == nil {
-			initEnv()
-		}
-		return Getenv(env, name)
-	}
 	for i, e := range items {
 		pos := strings.IndexAny(e, "=$")
 		if pos >= 0 && e[pos] == '=' {
@@ -104,14 +91,15 @@ func (p *App) Exec__1(cmdline string) error {
 			iCmd = i
 		}
 		if pos >= 0 {
-			items[i] = os.Expand(e, mapping)
+			items[i] = Sys.ExpandEnv(e)
 		}
 	}
 	if iCmd < 0 {
 		return errors.New("exec: no command")
 	}
-	if env == nil && iCmd > 0 {
-		initEnv()
+	var env []string
+	if iCmd > 0 {
+		env = Setenv__2(Sys.Environ(), items[:iCmd])
 	}
 	return p.execWith(env, items[iCmd], items[iCmd+1:]...)
 }
