@@ -23,8 +23,27 @@ import (
 
 // ---------------------------------------------------
 
-func TestBuffer(t *testing.T) {
+func TestWriter(t *testing.T) {
+	b := make([]byte, 8)
+	w := NewWriter(b)
+	w.Write([]byte("abc"))
+	w.Write([]byte("1234567"))
+	if _, e := w.Write([]byte("A")); e != io.EOF {
+		t.Fatal("w.Write:", e)
+	}
+	if v := w.Len(); v != 8 {
+		t.Fatal("w.Len():", v)
+	}
+	if v := string(w.Bytes()); v != "abc12345" {
+		t.Fatal("w.Bytes():", v)
+	}
+	w.Reset()
+	if v := w.Len(); v != 0 {
+		t.Fatal("w.Len():", v)
+	}
+}
 
+func TestBuffer(t *testing.T) {
 	b := NewBuffer()
 	n, err := b.WriteStringAt("Hello", 4)
 	if n != 5 || err != nil {

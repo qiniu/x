@@ -17,8 +17,17 @@
  limitations under the License.
 */
 
-package stringutil
+package byteutil
 
-func String(b []byte) string {
-	return string(b)
+import (
+	"reflect"
+	"unsafe"
+)
+
+// Bytes returns a byte slice whose underlying data is s.
+func Bytes(s string) (b []byte) {
+	bh := *(*reflect.SliceHeader)(unsafe.Pointer(&b))
+	sh := *(*reflect.StringHeader)(unsafe.Pointer(&s))
+	bh.Data, bh.Len, bh.Cap = sh.Data, sh.Len, sh.Len
+	return
 }
