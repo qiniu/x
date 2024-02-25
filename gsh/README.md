@@ -10,6 +10,7 @@ This is an alternative to writing shell scripts.
 
 Yes, now you can write `shell script` in Go+. It supports all shell commands.
 
+
 ## Usage
 
 First, let's create a file named `./example.gsh` and write the following code:
@@ -50,6 +51,51 @@ println files
 rmdir "testgsh", "testgsh2", "testgsh3"
 ```
 
+
+### Execute shell commands
+
+There are many ways to execute shell commands. The simplest way is:
+
+```coffee
+mkdir "testgsh"
+```
+
+It is equivalent to:
+
+```coffee
+exec "mkdir", "testgsh"
+```
+
+or:
+
+```coffee
+exec "mkdir testgsh"
+```
+
+If a shell command is a Go/Go+ language keyword (eg. `go`), or the command is a relative or absolute path, you can only execute it in the latter two ways:
+
+```coffee
+exec "go", "version"
+exec "./test.sh"
+exec "/usr/bin/env gop run ."
+```
+
+You can also specify environment variables to run:
+
+```coffee
+exec "GOOS=linux GOARCH=amd64 go install ."
+```
+
+
+### Retrieve environment variables
+
+You can get the value of an environment variable through `${XXX}`. For example:
+
+```coffee
+ls "${HOME}"
+```
+
+
 ### Check last error
 
 If we want to ensure `mkdir` successfully, there are three ways:
@@ -80,6 +126,7 @@ if lastErr != nil {
 
 This is the most familiar way to Go developers.
 
+
 ### Capture output of commands
 
 And, `gsh` provides a way to capture output of commands:
@@ -92,7 +139,7 @@ capout => {
 
 Similar to `lastErr`, the captured output result is saved to `output`.
 
-For an example:
+For example:
 
 ```coffee
 capout => { ls "-l" }
