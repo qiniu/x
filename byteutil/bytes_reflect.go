@@ -1,5 +1,8 @@
+//go:build !go1.21
+// +build !go1.21
+
 /*
- Copyright 2019 Qiniu Limited (qiniu.com)
+ Copyright 2024 Qiniu Limited (qiniu.com)
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -14,24 +17,17 @@
  limitations under the License.
 */
 
-package jsonutil
+package byteutil
 
 import (
-	"testing"
+	"reflect"
+	"unsafe"
 )
 
-func Test(t *testing.T) {
-	var ret struct {
-		ID string `json:"id"`
-	}
-	err := Unmarshal(`{"id": "123"}`, &ret)
-	if err != nil {
-		t.Fatal("Unmarshal failed:", err)
-	}
-	if ret.ID != "123" {
-		t.Fatal("Unmarshal uncorrect:", ret.ID)
-	}
-	if v := Stringify(ret); v != `{"id":"123"}` {
-		t.Fatal("Stringify:", v)
-	}
+// Bytes returns a byte slice whose underlying data is s.
+func Bytes(s string) (b []byte) {
+	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+	sh := *(*reflect.StringHeader)(unsafe.Pointer(&s))
+	bh.Data, bh.Len, bh.Cap = sh.Data, sh.Len, sh.Len
+	return
 }

@@ -1,5 +1,5 @@
-//go:build !go1.21
-// +build !go1.21
+//go:build go1.21
+// +build go1.21
 
 /*
  Copyright 2024 Qiniu Limited (qiniu.com)
@@ -17,8 +17,15 @@
  limitations under the License.
 */
 
-package stringutil
+package byteutil
 
-func String(b []byte) string {
-	return string(b)
+import (
+	"unsafe"
+)
+
+// Bytes returns a byte slice whose underlying data is s.
+func Bytes(s string) []byte {
+	// Although unsafe.SliceData/String was introduced in go1.20, but
+	// the go version in go.mod is 1.18 so we cannot use them.
+	return unsafe.Slice(unsafe.StringData(s), len(s))
 }
