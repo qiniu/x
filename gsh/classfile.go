@@ -44,6 +44,11 @@ func (p *App) initApp() {
 	p.ferr = os.Stderr
 }
 
+// Gop_Env retrieves the value of the environment variable named by the key.
+func (p *App) Gop_Env(key string) string {
+	return Sys.Getenv(key)
+}
+
 func (p *App) execWith(env []string, name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdin = p.fin

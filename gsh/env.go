@@ -86,6 +86,11 @@ type OS interface {
 	// variables are replaced by the empty string.
 	ExpandEnv(s string) string
 
+	// Getenv retrieves the value of the environment variable named by the key.
+	// It returns the value, which will be empty if the variable is not present.
+	// To distinguish between an empty value and an unset value, use LookupEnv.
+	Getenv(key string) string
+
 	// Run starts the specified command and waits for it to complete.
 	Run(c *exec.Cmd) error
 }
@@ -100,6 +105,10 @@ func (p defaultOS) Environ() []string {
 
 func (p defaultOS) ExpandEnv(s string) string {
 	return os.ExpandEnv(s)
+}
+
+func (p defaultOS) Getenv(key string) string {
+	return os.Getenv(key)
 }
 
 func (p defaultOS) Run(c *exec.Cmd) error {
