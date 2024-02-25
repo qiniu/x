@@ -23,16 +23,19 @@ import (
 )
 
 func TestConcat(t *testing.T) {
+	if ret := Concat("1"); ret != "1" {
+		t.Fatal("Concat(1):", ret)
+	}
 	if ret := Concat("1", "23", "!"); ret != "123!" {
 		t.Fatal("Concat:", ret)
 	}
 }
 
 func TestBuild(t *testing.T) {
-	if ret := NewBuilder(0).Build(); ret != "" {
+	if ret := NewBuilder(nil).Build(); ret != "" {
 		t.Fatal("NewBuilder(0):", ret)
 	}
-	if ret := NewBuilder(16).Add("1").AddByte('2', '3').AddByte('!').Build(); ret != "123!" {
+	if ret := NewBuilderSize(16).Add("1").AddByte('2', '3').AddByte('!').Build(); ret != "123!" {
 		t.Fatal("TestBuild:", ret)
 	}
 }

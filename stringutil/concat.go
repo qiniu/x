@@ -18,6 +18,9 @@ package stringutil
 
 // Concat concatenates parts of a string together.
 func Concat(parts ...string) string {
+	if len(parts) == 1 {
+		return parts[0]
+	}
 	n := 0
 	for _, part := range parts {
 		n += len(part)
