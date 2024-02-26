@@ -95,6 +95,12 @@ You can get the value of an environment variable through `${XXX}`. For example:
 ls "${HOME}"
 ```
 
+You can also use `exec` command through `$XXX`:
+
+```coffee
+exec "ls $HOME"
+```
+
 
 ### Check last error
 
