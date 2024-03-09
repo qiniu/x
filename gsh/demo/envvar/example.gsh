@@ -1,0 +1,2 @@
+echo ${HOME}
+ls $HOME

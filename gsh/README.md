@@ -13,7 +13,7 @@ Yes, now you can write `shell script` in Go+. It supports all shell commands.
 
 ## Usage
 
-First, let's create a file named `./example.gsh` and write the following code:
+First, let's create a file named [example.gsh](demo/hello/example.gsh) and write the following code:
 
 ```coffee
 mkdir "testgsh"
@@ -89,10 +89,11 @@ exec "GOOS=linux GOARCH=amd64 go install ."
 
 ### Retrieve environment variables
 
-You can get the value of an environment variable through `${XXX}`. For example:
+You can get the value of an environment variable through `${XXX}` or `$XXX`. For [example](demo/envvar/example.gsh):
 
 ```coffee
-ls "${HOME}"
+echo ${HOME}
+ls $HOME
 ```
 
 You can also use `exec` command through `$XXX`:
