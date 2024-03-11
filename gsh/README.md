@@ -42,11 +42,11 @@ if lastErr != nil {
 }
 
 capout => { ls }
-println output.fields
+echo output.fields
 
 capout => { ls "-l" }
 files := [file{flds[8], flds[4].int!} for e <- output.split("\n") if flds := e.fields; flds.len > 2]
-println files
+echo files
 
 rmdir "testgsh", "testgsh2", "testgsh3"
 ```
@@ -150,7 +150,7 @@ For example:
 
 ```coffee
 capout => { ls "-l" }
-println output
+echo output
 ```
 
 Here is a possible output:
