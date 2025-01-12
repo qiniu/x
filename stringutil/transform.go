@@ -25,7 +25,7 @@ import (
 // its upper case.
 func Capitalize(str string) string {
 	c, nc := utf8.DecodeRuneInString(str)
-	if c == utf8.RuneError || unicode.IsUpper(c) {
+	if unicode.IsUpper(c) || c == utf8.RuneError {
 		return str
 	}
 	ret := make([]byte, len(str))
