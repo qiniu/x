@@ -22,6 +22,18 @@ import (
 	"testing"
 )
 
+func TestCapitalize(t *testing.T) {
+	if ret := Capitalize(""); ret != "" {
+		t.Fatal("Capitalize:", ret)
+	}
+	if ret := Capitalize("hello"); ret != "Hello" {
+		t.Fatal("Capitalize:", ret)
+	}
+	if ret := Capitalize("Hello"); ret != "Hello" {
+		t.Fatal("Capitalize:", ret)
+	}
+}
+
 func TestConcat(t *testing.T) {
 	if ret := Concat("1"); ret != "1" {
 		t.Fatal("Concat(1):", ret)
