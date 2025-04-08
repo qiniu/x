@@ -423,7 +423,7 @@ func (p *Var__0[T]) Ok() bool {
 
 func (p *Var__0[T]) String() string {
 	p.check()
-	return fmt.Sprint(p.val) // TODO: optimization
+	return fmt.Sprint(p.val) // TODO(xsw): optimization
 }
 
 func (p *Var__0[T]) Val() T {

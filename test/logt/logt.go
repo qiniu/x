@@ -136,7 +136,7 @@ func (p *T) Helper() {
 // subtests complete. Cleanup functions will be called in last added,
 // first called order.
 func (p *T) Cleanup(f func()) {
-	// TODO:
+	// TODO(xsw):
 }
 
 // TempDir returns a temporary directory for the test to use.
