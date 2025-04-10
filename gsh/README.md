@@ -1,4 +1,4 @@
-Go+ DevOps Tools
+gsh - An alternative to writing shell scripts
 ======
 
 [![Language](https://img.shields.io/badge/language-Go+-blue.svg)](https://github.com/goplus/gop)
