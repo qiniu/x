@@ -40,6 +40,14 @@ func toMapAny[T basetype](val map[string]T) map[string]any {
 	return ret
 }
 
+func toSlice(val []map[string]any) []any {
+	ret := make([]any, len(val))
+	for i, v := range val {
+		ret[i] = v
+	}
+	return ret
+}
+
 func toSliceAny[T basetype](val []map[string]T) []any {
 	ret := make([]any, len(val))
 	for i, v := range val {
@@ -129,7 +137,7 @@ func Gopt_Case_MatchMap(t CaseT, expected, got map[string]any, name ...string) {
 	}
 }
 
-func Gopt_Case_MatchSlice(t CaseT, expected, got []any, name ...string) {
+func Gopt_Case_MatchSlice[T any](t CaseT, expected []T, got []any, name ...string) {
 	t.Helper()
 	if len(expected) != len(got) {
 		t.Fatalf("unmatched slice%s length - expected: %d, got: %d\n", nameCtx(name), len(expected), len(got))
@@ -287,6 +295,9 @@ retry:
 		case *Var__3[[]string]:
 			Gopt_Case_MatchBaseSlice(t, ev, gv.Val(), name...)
 			return
+		case []any:
+			Gopt_Case_MatchSlice(t, ev, gv, name...)
+			return
 		}
 	case TySet[string]:
 		switch gv := got.(type) {
@@ -396,6 +407,9 @@ retry:
 		expected = toMapAny(ev)
 		goto retry
 
+	case []map[string]any:
+		expected = toSlice(ev)
+		goto retry
 	case []map[string]string:
 		expected = toSliceAny(ev)
 		goto retry
