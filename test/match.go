@@ -40,6 +40,14 @@ func toMapAny[T basetype](val map[string]T) map[string]any {
 	return ret
 }
 
+func toSliceAny[T basetype](val []map[string]T) []any {
+	ret := make([]any, len(val))
+	for i, v := range val {
+		ret[i] = toMapAny(v)
+	}
+	return ret
+}
+
 func tryToMapAny(val any) (ret map[string]any, ok bool) {
 	v := reflect.ValueOf(val)
 	return castMapAny(v)
@@ -386,6 +394,10 @@ retry:
 		goto retry
 	case map[string]float64:
 		expected = toMapAny(ev)
+		goto retry
+
+	case []map[string]string:
+		expected = toSliceAny(ev)
 		goto retry
 
 	// other types:
