@@ -1,4 +1,4 @@
-gsh - An alternative to writing shell scripts
+gsh - An alternative to write shell scripts
 ======
 
 [![Language](https://img.shields.io/badge/language-Go+-blue.svg)](https://github.com/goplus/gop)
@@ -6,7 +6,7 @@ gsh - An alternative to writing shell scripts
 [![Discord](https://img.shields.io/badge/Discord-online-success.svg?logo=discord&logoColor=white)](https://discord.gg/mYjWCJDcAr)
 [![GoDoc](https://pkg.go.dev/badge/github.com/qiniu/x/gsh.svg)](https://pkg.go.dev/github.com/qiniu/x/gsh)
 
-This is an alternative to writing shell scripts.
+This is an alternative to write shell scripts.
 
 Yes, now you can write `shell script` in Go+. It supports all shell commands.
 
