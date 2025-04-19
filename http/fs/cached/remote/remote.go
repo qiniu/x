@@ -27,6 +27,7 @@ import (
 	"strings"
 	"time"
 
+	xfs "github.com/qiniu/x/http/fs"
 	"github.com/qiniu/x/http/fs/cached"
 	xdir "github.com/qiniu/x/http/fs/cached/dir"
 )
@@ -220,7 +221,7 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 				log.Printf("[WARN] writeStubFile fail (%d errors)", nError)
 			}
 		}()
-		return cached.Dir(f, fis), nil
+		return xfs.Dir(f, fis), nil
 	}
 	if p.cacheFile {
 		localFile := filepath.Join(local, name)

@@ -1,3 +1,19 @@
+/*
+ Copyright 2024 Qiniu Limited (qiniu.com)
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package fs
 
 import (
@@ -80,6 +96,47 @@ func TestStream(t *testing.T) {
 	stm2.br = nil
 	if f := Unseekable(stm2); f != file {
 		t.Fatal("Unseekable:", f)
+	}
+}
+
+type iDirReader interface {
+	http.File
+	ReadDir(n int) (items []fs.DirEntry, err error)
+}
+
+func testReadDir(t *testing.T, d iDirReader, n, nexp int) {
+	des, err := d.ReadDir(n)
+	if err != nil {
+		if n < 2 || err != io.EOF {
+			t.Fatal("Dir.Readdir:", err)
+		}
+	}
+	if len(des) != nexp {
+		t.Fatal("Dir.Readdir len(des):", len(des))
+	}
+	if des[0].Name() != "a.txt" {
+		t.Fatal("Dir.Readdir fis[0].Name():", des[0].Name())
+	}
+	des[0].Type()
+	des[0].Info()
+}
+
+func TestDir(t *testing.T) {
+	{
+		fis := []fs.FileInfo{NewFileInfo("a.txt", 123), NewFileInfo("b.txt", 456)}
+		d := Dir(NewDirInfo(""), fis).(iDirReader)
+		testReadDir(t, d, -1, 2)
+		d.Seek(0, io.SeekStart)
+		testReadDir(t, d, 5, 2)
+	}
+	{
+		fis := []fs.FileInfo{NewFileInfo("a.txt", 123), NewFileInfo("b.txt", 456)}
+		d := Dir(NewDirInfo(""), fis).(iDirReader)
+		testReadDir(t, d, 1, 1)
+		d.Seek(0, io.SeekEnd)
+		d.Read(nil)
+		d.Stat()
+		d.Close()
 	}
 }
 

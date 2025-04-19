@@ -26,7 +26,6 @@ import (
 	"strings"
 
 	xfs "github.com/qiniu/x/http/fs"
-	"github.com/qiniu/x/http/fs/cached"
 )
 
 // -----------------------------------------------------------------------------------------
@@ -63,7 +62,7 @@ func Dir(name string, entries ...http.File) http.File {
 		}
 		fis[i] = item
 	}
-	return &fsDir{cached.Dir(fi, fis), entries}
+	return &fsDir{xfs.Dir(fi, fis), entries}
 }
 
 // -----------------------------------------------------------------------------------------

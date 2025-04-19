@@ -65,7 +65,7 @@ func (p *fsPlugins) Open(name string) (http.File, error) {
 type Plugin = func(fs http.FileSystem, name string) (file http.File, err error)
 
 // Plugins implements a filesystem with plugins by specified (ext string, plugin Plugin) pairs.
-func Plugins(fs http.FileSystem, plugins ...interface{}) http.FileSystem {
+func Plugins(fs http.FileSystem, plugins ...any) http.FileSystem {
 	n := len(plugins)
 	exts := make(map[string]Plugin, n/2)
 	for i := 0; i < n; i += 2 {
@@ -128,7 +128,7 @@ func (p *FileInfo) Info() (fs.FileInfo, error) {
 }
 
 // for fs.FileInfo
-func (p *FileInfo) Sys() interface{} {
+func (p *FileInfo) Sys() any {
 	return nil
 }
 
@@ -172,7 +172,7 @@ func (p *DirInfo) IsDir() bool {
 }
 
 // for fs.FileInfo
-func (p *DirInfo) Sys() interface{} {
+func (p *DirInfo) Sys() any {
 	return nil
 }
 
@@ -184,6 +184,85 @@ func (p *DirInfo) Stat() (fs.FileInfo, error) {
 // io.Closer
 func (p *DirInfo) Close() error {
 	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+// StatCloser is the interface that groups the basic Stat and Close methods.
+type StatCloser interface {
+	Stat() (fs.FileInfo, error)
+	Close() error
+}
+
+type dir struct {
+	items []fs.FileInfo
+	file  StatCloser
+	off   int
+}
+
+// Dir implements a http.File by a list of fs.FileInfo.
+func Dir(base StatCloser, fis []fs.FileInfo) http.File {
+	return &dir{fis, base, 0}
+}
+
+func (p *dir) Close() error {
+	return p.file.Close()
+}
+
+func (p *dir) Read(b []byte) (n int, err error) {
+	return 0, fs.ErrPermission
+}
+
+func (p *dir) Seek(offset int64, whence int) (int64, error) {
+	if whence == io.SeekStart && offset == 0 {
+		p.off = 0
+		return 0, nil
+	}
+	return 0, fs.ErrPermission
+}
+
+func (p *dir) Stat() (fs.FileInfo, error) {
+	return p.file.Stat()
+}
+
+func (p *dir) Readdir(n int) (fis []fs.FileInfo, err error) {
+	fis = p.items[p.off:]
+	if n <= 0 {
+		p.off = len(p.items)
+		return
+	}
+	if len(fis) > n {
+		fis = fis[:n]
+	} else {
+		err = io.EOF
+	}
+	p.off += len(fis)
+	return
+}
+
+func (p *dir) ReadDir(n int) (items []fs.DirEntry, err error) {
+	fis, err := p.Readdir(n)
+	if err != nil && err != io.EOF {
+		return
+	}
+	items = make([]fs.DirEntry, len(fis))
+	for i, fi := range fis {
+		items[i] = DirEntry{fi}
+	}
+	return
+}
+
+// DirEntry implements fs.DirEntry.
+type DirEntry struct {
+	fs.FileInfo
+}
+
+func (d DirEntry) Info() (fs.FileInfo, error) {
+	return d.FileInfo, nil
+}
+
+func (d DirEntry) Type() fs.FileMode {
+	return d.FileInfo.Mode().Type()
 }
 
 // -----------------------------------------------------------------------------------------
@@ -211,7 +290,7 @@ func (p rootDir) IsDir() bool {
 	return true
 }
 
-func (p rootDir) Sys() interface{} {
+func (p rootDir) Sys() any {
 	return nil
 }
 
