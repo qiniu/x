@@ -99,6 +99,47 @@ func TestStream(t *testing.T) {
 	}
 }
 
+type iDirReader interface {
+	http.File
+	ReadDir(n int) (items []fs.DirEntry, err error)
+}
+
+func testReadDir(t *testing.T, d iDirReader, n, nexp int) {
+	des, err := d.ReadDir(n)
+	if err != nil {
+		if n < 2 || err != io.EOF {
+			t.Fatal("Dir.Readdir:", err)
+		}
+	}
+	if len(des) != nexp {
+		t.Fatal("Dir.Readdir len(des):", len(des))
+	}
+	if des[0].Name() != "a.txt" {
+		t.Fatal("Dir.Readdir fis[0].Name():", des[0].Name())
+	}
+	des[0].Type()
+	des[0].Info()
+}
+
+func TestDir(t *testing.T) {
+	{
+		fis := []fs.FileInfo{NewFileInfo("a.txt", 123), NewFileInfo("b.txt", 456)}
+		d := Dir(NewDirInfo(""), fis).(iDirReader)
+		testReadDir(t, d, -1, 2)
+		d.Seek(0, io.SeekStart)
+		testReadDir(t, d, 5, 2)
+	}
+	{
+		fis := []fs.FileInfo{NewFileInfo("a.txt", 123), NewFileInfo("b.txt", 456)}
+		d := Dir(NewDirInfo(""), fis).(iDirReader)
+		testReadDir(t, d, 1, 1)
+		d.Seek(0, io.SeekEnd)
+		d.Read(nil)
+		d.Stat()
+		d.Close()
+	}
+}
+
 // -----------------------------------------------------------------------------------------
 
 type errCloser struct {
