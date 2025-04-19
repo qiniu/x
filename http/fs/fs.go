@@ -65,7 +65,7 @@ func (p *fsPlugins) Open(name string) (http.File, error) {
 type Plugin = func(fs http.FileSystem, name string) (file http.File, err error)
 
 // Plugins implements a filesystem with plugins by specified (ext string, plugin Plugin) pairs.
-func Plugins(fs http.FileSystem, plugins ...interface{}) http.FileSystem {
+func Plugins(fs http.FileSystem, plugins ...any) http.FileSystem {
 	n := len(plugins)
 	exts := make(map[string]Plugin, n/2)
 	for i := 0; i < n; i += 2 {
@@ -128,7 +128,7 @@ func (p *FileInfo) Info() (fs.FileInfo, error) {
 }
 
 // for fs.FileInfo
-func (p *FileInfo) Sys() interface{} {
+func (p *FileInfo) Sys() any {
 	return nil
 }
 
@@ -172,7 +172,7 @@ func (p *DirInfo) IsDir() bool {
 }
 
 // for fs.FileInfo
-func (p *DirInfo) Sys() interface{} {
+func (p *DirInfo) Sys() any {
 	return nil
 }
 
@@ -247,20 +247,21 @@ func (p *dir) ReadDir(n int) (items []fs.DirEntry, err error) {
 	}
 	items = make([]fs.DirEntry, len(fis))
 	for i, fi := range fis {
-		items[i] = dirEntry{fi}
+		items[i] = DirEntry{fi}
 	}
 	return
 }
 
-type dirEntry struct {
+// DirEntry implements fs.DirEntry.
+type DirEntry struct {
 	fs.FileInfo
 }
 
-func (d dirEntry) Info() (fs.FileInfo, error) {
+func (d DirEntry) Info() (fs.FileInfo, error) {
 	return d.FileInfo, nil
 }
 
-func (d dirEntry) Type() fs.FileMode {
+func (d DirEntry) Type() fs.FileMode {
 	return d.FileInfo.Mode().Type()
 }
 
@@ -289,7 +290,7 @@ func (p rootDir) IsDir() bool {
 	return true
 }
 
-func (p rootDir) Sys() interface{} {
+func (p rootDir) Sys() any {
 	return nil
 }
 
