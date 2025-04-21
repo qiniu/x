@@ -266,10 +266,12 @@ func testFI(t *testing.T, fi fs.FileInfo, name string, size int64, mode fs.FileM
 }
 
 func TestFileInfo(t *testing.T) {
+	f := &dataFile{name: "/foo/a.txt", ContentReader: strings.NewReader("a")}
+	f.FullName()
 	testFI(t, NewDirInfo("foo"), "foo", 0, fs.ModeIrregular|fs.ModeDir, false, true, nil)
 	testFI(t, NewFileInfo("a.txt", 123), "a.txt", 123, fs.ModeIrregular, true, false, nil)
 	testFI(t, rootDir{}, "/", 0, fs.ModeDir, false, true, nil)
-	testFI(t, &dataFile{name: "/foo/a.txt", ContentReader: strings.NewReader("a")}, "a.txt", 1, 0, false, false, nil)
+	testFI(t, f, "a.txt", 1, 0, false, false, nil)
 	testFI(t, HttpFile("/foo/a.txt", &http.Response{ContentLength: -1, Body: io.NopCloser(strings.NewReader("abc"))}).(*httpFile), "a.txt", 3, fs.ModeIrregular, false, false, nil)
 	testFI(t, SequenceFile("/foo/a.txt", io.NopCloser(strings.NewReader("abc"))).(*stream), "a.txt", 3, fs.ModeIrregular, false, false, nil)
 }
