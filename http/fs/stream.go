@@ -34,13 +34,17 @@ func Download(destFile string, src http.File) (err error) {
 	}
 	defer f.Close()
 
+	return CopyFile(f, src)
+}
+
+// CopyFile copies from a http.File to a io.Writer.
+func CopyFile(f io.Writer, src http.File) (err error) {
 	if tr, ok := src.(interface{ TryReader() *bytes.Reader }); ok {
 		if r := tr.TryReader(); r != nil {
 			_, err = r.WriteTo(f)
 			return
 		}
 	}
-
 	// Unseekable(src): reduce unnecessary memory usage
 	_, err = io.Copy(f, Unseekable(src))
 	return

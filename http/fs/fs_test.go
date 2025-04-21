@@ -99,6 +99,17 @@ func TestStream(t *testing.T) {
 	}
 }
 
+func TestCopyFile(t *testing.T) {
+	f := HttpFile("/foo/a.txt", &http.Response{ContentLength: -1, Body: io.NopCloser(strings.NewReader("abc"))})
+	if err := CopyFile(io.Discard, f); err != nil {
+		t.Fatal("CopyFile:", err)
+	}
+	f.Seek(0, io.SeekStart)
+	if err := CopyFile(io.Discard, f); err != nil {
+		t.Fatal("CopyFile:", err)
+	}
+}
+
 type iDirReader interface {
 	http.File
 	ReadDir(n int) (items []fs.DirEntry, err error)
@@ -130,13 +141,16 @@ func TestDir(t *testing.T) {
 		testReadDir(t, d, 5, 2)
 	}
 	{
-		fis := []fs.FileInfo{NewFileInfo("a.txt", 123), NewFileInfo("b.txt", 456)}
+		fi := NewFileInfo("a.txt", 123)
+		fis := []fs.FileInfo{fi, NewFileInfo("b.txt", 456)}
 		d := Dir(NewDirInfo(""), fis).(iDirReader)
 		testReadDir(t, d, 1, 1)
 		d.Seek(0, io.SeekEnd)
 		d.Read(nil)
 		d.Stat()
 		d.Close()
+		fi.Info()
+		fi.Type()
 	}
 }
 
