@@ -27,7 +27,7 @@ import (
 // ----------------------------------------------------------
 
 // Reply replies a http request with a json response.
-func Reply(w http.ResponseWriter, code int, data interface{}) {
+func Reply(w http.ResponseWriter, code int, data any) {
 	msg, err := json.Marshal(data)
 	if err != nil {
 		panic(err)

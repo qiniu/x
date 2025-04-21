@@ -81,7 +81,7 @@ func TestStream(t *testing.T) {
 	testIS(t, stm, &expectStm{br: br, readN: 1, size: 123})
 	br.Seek(0, io.SeekStart)
 	ti := time.Now().Format(http.TimeFormat)
-	stm2 := &httpFile{br: br, file: file, resp: &http.Response{ContentLength: 123, Body: file, Header: http.Header{
+	stm2 := &httpFile{stream: stream{br: br, file: file}, resp: &http.Response{ContentLength: 123, Body: file, Header: http.Header{
 		"Last-Modified": []string{ti},
 	}}}
 	modt, err := http.ParseTime(ti)
@@ -96,6 +96,17 @@ func TestStream(t *testing.T) {
 	stm2.br = nil
 	if f := Unseekable(stm2); f != file {
 		t.Fatal("Unseekable:", f)
+	}
+}
+
+func TestCopyFile(t *testing.T) {
+	f := HttpFile("/foo/a.txt", &http.Response{ContentLength: -1, Body: io.NopCloser(strings.NewReader("abc"))})
+	if err := CopyFile(io.Discard, f); err != nil {
+		t.Fatal("CopyFile:", err)
+	}
+	f.Seek(0, io.SeekStart)
+	if err := CopyFile(io.Discard, f); err != nil {
+		t.Fatal("CopyFile:", err)
 	}
 }
 
@@ -130,13 +141,16 @@ func TestDir(t *testing.T) {
 		testReadDir(t, d, 5, 2)
 	}
 	{
-		fis := []fs.FileInfo{NewFileInfo("a.txt", 123), NewFileInfo("b.txt", 456)}
+		fi := NewFileInfo("a.txt", 123)
+		fis := []fs.FileInfo{fi, NewFileInfo("b.txt", 456)}
 		d := Dir(NewDirInfo(""), fis).(iDirReader)
 		testReadDir(t, d, 1, 1)
 		d.Seek(0, io.SeekEnd)
 		d.Read(nil)
 		d.Stat()
 		d.Close()
+		fi.Info()
+		fi.Type()
 	}
 }
 
@@ -252,12 +266,14 @@ func testFI(t *testing.T, fi fs.FileInfo, name string, size int64, mode fs.FileM
 }
 
 func TestFileInfo(t *testing.T) {
+	f := &dataFile{name: "/foo/a.txt", ContentReader: strings.NewReader("a")}
+	f.FullName()
 	testFI(t, NewDirInfo("foo"), "foo", 0, fs.ModeIrregular|fs.ModeDir, false, true, nil)
 	testFI(t, NewFileInfo("a.txt", 123), "a.txt", 123, fs.ModeIrregular, true, false, nil)
 	testFI(t, rootDir{}, "/", 0, fs.ModeDir, false, true, nil)
-	testFI(t, &dataFile{name: "/foo/a.txt", ContentReader: strings.NewReader("a")}, "a.txt", 1, 0, false, false, nil)
-	testFI(t, HttpFile("/foo/a.txt", &http.Response{ContentLength: -1}).(*httpFile), "a.txt", -1, fs.ModeIrregular, false, false, nil)
-	testFI(t, SequenceFile("/foo/a.txt", nil).(*stream), "a.txt", -1, fs.ModeIrregular, false, false, nil)
+	testFI(t, f, "a.txt", 1, 0, false, false, nil)
+	testFI(t, HttpFile("/foo/a.txt", &http.Response{ContentLength: -1, Body: io.NopCloser(strings.NewReader("abc"))}).(*httpFile), "a.txt", 3, fs.ModeIrregular, false, false, nil)
+	testFI(t, SequenceFile("/foo/a.txt", io.NopCloser(strings.NewReader("abc"))).(*stream), "a.txt", 3, fs.ModeIrregular, false, false, nil)
 }
 
 // -----------------------------------------------------------------------------------------

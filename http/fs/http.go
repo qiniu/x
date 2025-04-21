@@ -114,7 +114,7 @@ func (p *fsWithTracker) Open(name string) (file http.File, err error) {
 
 // WithTracker implements a http.FileSystem by pactching large file access like git lfs.
 // Here trackerInit should be (urlBase string) or (httpfs *fs.HttpFS).
-func WithTracker(fs http.FileSystem, trackerInit interface{}, exts ...string) http.FileSystem {
+func WithTracker(fs http.FileSystem, trackerInit any, exts ...string) http.FileSystem {
 	m := make(map[string]struct{}, len(exts))
 	for _, ext := range exts {
 		m[ext] = struct{}{}
