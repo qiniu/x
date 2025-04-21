@@ -85,7 +85,7 @@ func (p *dataFile) ModTime() time.Time {
 	return time.Now()
 }
 
-func (p *dataFile) Sys() interface{} {
+func (p *dataFile) Sys() any {
 	return nil
 }
 

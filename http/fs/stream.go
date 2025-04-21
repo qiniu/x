@@ -33,13 +33,16 @@ func Download(destFile string, src http.File) (err error) {
 		return
 	}
 	defer f.Close()
+
 	if tr, ok := src.(interface{ TryReader() *bytes.Reader }); ok {
 		if r := tr.TryReader(); r != nil {
 			_, err = r.WriteTo(f)
 			return
 		}
 	}
-	_, err = io.Copy(f, src)
+
+	// Unseekable(src): reduce unnecessary memory usage
+	_, err = io.Copy(f, Unseekable(src))
 	return
 }
 
@@ -114,24 +117,39 @@ func (p *stream) Read(b []byte) (n int, err error) {
 	return
 }
 
-func (p *stream) Seek(offset int64, whence int) (int64, error) {
+func (p *stream) Seek(offset int64, whence int) (_ int64, err error) {
 	if p.br == nil {
-		off := p.b.Len()
-		_, err := io.Copy(&p.b, p.file)
-		if err != nil {
-			return 0, err
+		if err = p.initBr(); err != nil {
+			return
 		}
+	}
+	return p.br.Seek(offset, whence)
+}
+
+func (p *stream) initBr() (err error) {
+	off := p.b.Len()
+	_, err = io.Copy(&p.b, p.file)
+	if err == nil {
 		p.br = bytes.NewReader(p.b.Bytes())
 		p.br.Seek(int64(off), io.SeekStart)
 	}
-	return p.br.Seek(offset, whence)
+	return
+}
+
+func (p *stream) getSize() int64 {
+	if p.br == nil {
+		if err := p.initBr(); err != nil {
+			panic(err)
+		}
+	}
+	return p.br.Size()
 }
 
 func (p *stream) Size() int64 {
 	if r, ok := p.file.(interface{ Size() int64 }); ok {
 		return r.Size()
 	}
-	return -1
+	return p.getSize()
 }
 
 func (p *stream) Close() error {
@@ -145,7 +163,7 @@ func (p *stream) ModTime() time.Time {
 	return time.Now()
 }
 
-func (p *stream) Sys() interface{} {
+func (p *stream) Sys() any {
 	return nil
 }
 
@@ -157,75 +175,15 @@ func SequenceFile(name string, body io.ReadCloser) http.File {
 // -----------------------------------------------------------------------------------------
 
 type httpFile struct {
-	file io.ReadCloser
+	stream
 	resp *http.Response
-	b    bytes.Buffer
-	br   *bytes.Reader
-	name string
-}
-
-// TryReader is provided for fast copy. See function `Download`.
-func (p *httpFile) TryReader() *bytes.Reader {
-	return p.br
-}
-
-func (p *httpFile) ReadDir(n int) ([]fs.DirEntry, error) {
-	return nil, fs.ErrInvalid
-}
-
-func (p *httpFile) Readdir(count int) ([]fs.FileInfo, error) {
-	return nil, fs.ErrInvalid
-}
-
-func (p *httpFile) IsDir() bool {
-	return false
-}
-
-func (p *httpFile) Mode() fs.FileMode {
-	return fs.ModeIrregular
-}
-
-func (p *httpFile) Name() string {
-	return path.Base(p.name)
-}
-
-func (p *httpFile) FullName() string {
-	return p.name
-}
-
-func (p *httpFile) Stat() (fs.FileInfo, error) {
-	return p, nil
-}
-
-func (p *httpFile) Read(b []byte) (n int, err error) {
-	if p.br == nil {
-		n, err = p.file.Read(b)
-		p.b.Write(b[:n])
-	} else {
-		n, err = p.br.Read(b)
-	}
-	return
-}
-
-func (p *httpFile) Seek(offset int64, whence int) (int64, error) {
-	if p.br == nil {
-		off := p.b.Len()
-		_, err := io.Copy(&p.b, p.file)
-		if err != nil {
-			return 0, err
-		}
-		p.br = bytes.NewReader(p.b.Bytes())
-		p.br.Seek(int64(off), io.SeekStart)
-	}
-	return p.br.Seek(offset, whence)
 }
 
 func (p *httpFile) Size() int64 {
-	return p.resp.ContentLength
-}
-
-func (p *httpFile) Close() error {
-	return p.file.Close()
+	if n := p.resp.ContentLength; n >= 0 {
+		return n
+	}
+	return p.getSize()
 }
 
 func (p *httpFile) ModTime() time.Time {
@@ -237,13 +195,9 @@ func (p *httpFile) ModTime() time.Time {
 	return time.Now()
 }
 
-func (p *httpFile) Sys() interface{} {
-	return nil
-}
-
 // HttpFile implements a http.File by a http.Response object.
 func HttpFile(name string, resp *http.Response) http.File {
-	return &httpFile{file: resp.Body, resp: resp, name: name}
+	return &httpFile{stream{file: resp.Body, name: name}, resp}
 }
 
 // -----------------------------------------------------------------------------------------
