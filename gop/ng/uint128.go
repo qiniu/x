@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ng
 
 import (
@@ -214,7 +230,7 @@ func (u *Uint128) Scan(state fmt.ScanState, verb rune) (err error) {
 }
 
 func (u Uint128) Format(s fmt.State, c rune) {
-	// TODO: not so good
+	// TODO(xsw): not so good
 	u.BigInt().Format(s, c)
 }
 
@@ -226,7 +242,7 @@ func (u Uint128) Text(base int) string {
 	if u.hi == 0 {
 		return strconv.FormatUint(u.lo, base)
 	}
-	// TODO: not so good
+	// TODO(xsw): not so good
 	return u.BigInt().Text(base)
 }
 
@@ -716,7 +732,7 @@ func (u Uint128) QuoRem__0(by uint64) (q, r Uint128) {
 
 // Gop_Rem: func (a uint128) % (b uint128) uint128
 func (u Uint128) Gop_Rem__1(by Uint128) (r Uint128) {
-	// TODO: inline only the needed bits
+	// TODO(xsw): inline only the needed bits
 	_, r = u.QuoRem__1(by)
 	return r
 }

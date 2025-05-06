@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ng
 
 import (
@@ -90,7 +106,7 @@ func Int128_Cast__6(v int8) Int128 {
 
 // Int128_Cast: func int128(v uint18) int128
 func Int128_Cast__7(v Uint128) (out Int128) {
-	return Int128{hi: v.hi, lo: v.lo}
+	return Int128(v)
 }
 
 // Int128_Cast: func int128(v *big.Int) int128
@@ -145,13 +161,13 @@ func Int128_Cast__9(v *big.Int) (out Int128, inRange bool) {
 		if cmp := u.Cmp__1(Uint128{hi: 0x8000000000000000, lo: 0}); cmp > 0 {
 			out, inRange = Int128{hi: 0x8000000000000000, lo: 0}, false
 		} else {
-			out = Int128{hi: u.hi, lo: u.lo}.Gop_Neg()
+			out = Int128(u).Gop_Neg()
 		}
 	} else {
 		if cmp := u.Cmp__1(Uint128{hi: maxInt64, lo: maxUint64}); cmp > 0 {
 			out, inRange = Int128{hi: maxInt64, lo: maxUint64}, false
 		} else {
-			out = Int128{hi: u.hi, lo: u.lo}
+			out = Int128(u)
 		}
 	}
 	return
@@ -164,12 +180,12 @@ func Int128_Cast__a() Int128 {
 
 // Gop_Rcast: func uint128(v int128) uint128
 func (i Int128) Gop_Rcast__0() Uint128 {
-	return Uint128{lo: i.lo, hi: i.hi}
+	return Uint128(i)
 }
 
 // Gop_Rcast: func uint128(v int128) (uint128, bool)
 func (i Int128) Gop_Rcast__1() (out Uint128, inRange bool) {
-	return Uint128{lo: i.lo, hi: i.hi}, i.hi&signBit == 0
+	return Uint128(i), i.hi&signBit == 0
 }
 
 // Gop_Rcast: func int64(v int128) int64
@@ -217,7 +233,7 @@ func (i *Int128) Scan(state fmt.ScanState, verb rune) (err error) {
 }
 
 func (i Int128) Format(s fmt.State, c rune) {
-	// TODO: not so good
+	// TODO(xsw): not so good
 	i.BigInt().Format(s, c)
 }
 
@@ -226,7 +242,7 @@ func (i Int128) String() string {
 }
 
 func (i Int128) Text(base int) string {
-	// TODO: not so good
+	// TODO(xsw): not so good
 	return i.BigInt().Text(base)
 }
 
@@ -417,7 +433,7 @@ func (i Int128) AbsU() Uint128 {
 			i.hi++
 		}
 	}
-	return Uint128{hi: i.hi, lo: i.lo}
+	return Uint128(i)
 }
 
 // Cmp compares i to n and returns:
