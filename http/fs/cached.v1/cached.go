@@ -28,25 +28,38 @@ import (
 )
 
 var (
+	// ErrOffline indicates that the remote filesystem is offline.
 	ErrOffline = errors.New("remote filesystem is offline")
 )
 
 const (
+	// ModeRemote indicates that the file is a remote file or directory.
 	ModeRemote = fs.ModeSymlink | fs.ModeIrregular
 )
 
+// IsRemote checks if the file mode indicates a remote file or directory.
 func IsRemote(mode fs.FileMode) bool {
 	return (mode & ModeRemote) == ModeRemote
 }
 
 // -----------------------------------------------------------------------------------------
 
+// Remote is an interface for remote file system operations.
 type Remote interface {
-	Init(local string, offline bool)
+	// Init initializes the remote file system with it local cache.
+	Init(local string, offline bool) error
+
+	// Lstat retrieves the cached FileInfo for the specified file or directory.
 	Lstat(localFile string) (fs.FileInfo, error)
+
+	// ReaddirAll reads all entries in the directory and returns their cached FileInfo.
 	ReaddirAll(localDir string, dir *os.File, offline bool) (fis []fs.FileInfo, err error)
+
+	// SyncLstat retrieves the FileInfo from the remote.
 	SyncLstat(local string, name string) (fs.FileInfo, error)
-	SyncOpen(local string, name string) (http.File, error)
+
+	// SyncOpen retrieves the file from the remote.
+	SyncOpen(local string, name string, fi fs.FileInfo) (http.File, error)
 }
 
 type fsCached struct {
@@ -55,15 +68,31 @@ type fsCached struct {
 	offline bool
 }
 
+// New creates a new cached file system with the specified local cache directory
+// and remote file system.
 func New(local string, remote Remote, offline ...bool) http.FileSystem {
+	fs, err := NewEx(local, remote, offline...)
+	if err != nil {
+		panic(err)
+	}
+	return fs
+}
+
+// NewEx creates a new cached file system with the specified local cache directory
+// and remote file system.
+func NewEx(local string, remote Remote, offline ...bool) (_ http.FileSystem, err error) {
 	var isOffline bool
 	if offline != nil {
 		isOffline = offline[0]
 	}
-	remote.Init(local, isOffline)
-	return &fsCached{local, remote, isOffline}
+	err = remote.Init(local, isOffline)
+	if err != nil {
+		return
+	}
+	return &fsCached{local, remote, isOffline}, nil
 }
 
+// RemoteOf retrieves the remote file system from the cached file system.
 func RemoteOf(fs http.FileSystem) (r Remote, ok bool) {
 	c, ok := fs.(*fsCached)
 	if ok {
@@ -72,6 +101,7 @@ func RemoteOf(fs http.FileSystem) (r Remote, ok bool) {
 	return
 }
 
+// IsOffline checks if the cached file system is in offline mode.
 func IsOffline(fs http.FileSystem) bool {
 	if c, ok := fs.(*fsCached); ok {
 		return c.offline
@@ -96,7 +126,7 @@ func (p *fsCached) Open(name string) (file http.File, err error) {
 		if p.offline {
 			return nil, ErrOffline
 		}
-		return remote.SyncOpen(local, name)
+		return remote.SyncOpen(local, name, fi)
 	}
 	f, err := os.Open(localFile)
 	if err != nil {
@@ -118,6 +148,7 @@ func (p *fsCached) Open(name string) (file http.File, err error) {
 
 // -----------------------------------------------------------------------------------------
 
+// DownloadFile downloads the file from the remote to the local cache file.
 func DownloadFile(localFile string, file http.File) (err error) {
 	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {

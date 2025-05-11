@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/qiniu/x/http/fs/cached/remote"
+	"github.com/qiniu/x/http/fs/cached.v1/remote"
 	"github.com/qiniu/x/http/fsx"
 )
 

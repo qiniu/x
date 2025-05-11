@@ -77,10 +77,11 @@ type entryHdr struct {
 	mtime   int64  // modification time in UnixMicro
 	mode    uint32 // file mode bits
 	nameLen uint32
+	udata   uint64 // user data
 }
 
 const (
-	entryHdrLen = 24
+	entryHdrLen = 32
 )
 
 func (p *entryHdr) read(b []byte) ([]byte, error) {
@@ -91,17 +92,18 @@ func (p *entryHdr) read(b []byte) ([]byte, error) {
 	p.mtime = int64(binary.LittleEndian.Uint64(b[8:]))
 	p.mode = binary.LittleEndian.Uint32(b[16:])
 	p.nameLen = binary.LittleEndian.Uint32(b[20:])
-	return b[24:], nil
+	p.udata = binary.LittleEndian.Uint64(b[24:])
+	return b[32:], nil
 }
 
-func WriteFileInfo(b []byte, fi fs.FileInfo) []byte {
+func WriteFileInfo(b []byte, fi fs.FileInfo, udata uint64) {
 	binary.LittleEndian.PutUint64(b, uint64(fi.Size()))
 	binary.LittleEndian.PutUint64(b[8:], uint64(fi.ModTime().UnixMicro()))
 	binary.LittleEndian.PutUint32(b[16:], uint32(fi.Mode()))
 	name := fi.Name()
 	binary.LittleEndian.PutUint32(b[20:], uint32(len(name)))
-	copy(b[24:], name)
-	return b[24+len(name):]
+	binary.LittleEndian.PutUint64(b[24:], udata)
+	copy(b[32:], name)
 }
 
 type fileInfo struct {
@@ -138,8 +140,12 @@ func (p *fileInfo) IsDir() bool {
 	return p.Mode().IsDir()
 }
 
-func (p *fileInfo) Sys() interface{} {
+func (p *fileInfo) Sys() any {
 	return nil
+}
+
+func (p *fileInfo) Udata() uint64 {
+	return p.d.udata
 }
 
 // -----------------------------------------------------------------------------------------
@@ -174,10 +180,10 @@ func SizeFileInfos(fis []fs.FileInfo) int {
 
 // -----------------------------------------------------------------------------------------
 
-func BytesFileInfo(fi fs.FileInfo) []byte {
+func BytesFileInfo(fi fs.FileInfo, udata uint64) []byte {
 	n := SizeFileInfo(fi)
 	b := make([]byte, n)
-	WriteFileInfo(b, fi)
+	WriteFileInfo(b, fi, udata)
 	return b
 }
 
