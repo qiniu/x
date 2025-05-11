@@ -143,7 +143,7 @@ func (p *remote) SyncLstat(local string, name string) (fs.FileInfo, error) {
 	return nil, os.ErrNotExist
 }
 
-func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
+func (p *remote) SyncOpen(local string, name string, fi fs.FileInfo) (f http.File, err error) {
 	resp, err := http.Get(p.urlBase + name)
 	if err != nil {
 		return
@@ -162,7 +162,8 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 	return closer.file, nil
 }
 
-func (p *remote) Init(local string, offline bool) {
+func (p *remote) Init(local string, offline bool) error {
+	return nil
 }
 
 func NewRemote(urlBase string, exts ...string) cached.Remote {

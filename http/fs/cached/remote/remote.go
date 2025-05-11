@@ -48,7 +48,10 @@ func SetDebug(dbgFlags int) {
 // -----------------------------------------------------------------------------------------
 
 const (
-	SysFilePrefix    = ".fscache."
+	SysFilePrefix = ".fscache."
+
+	// readDir from local is ready if there is a dirListCacheFile
+	// see MarkDirCached
 	dirListCacheFile = SysFilePrefix + "ls"
 )
 
@@ -61,20 +64,85 @@ func checkDirCached(dir string) fs.FileInfo {
 	return fi
 }
 
-func TouchDirCached(dir string) error {
+// MarkDirCached marks the directory has dirList cache.
+func MarkDirCached(dir string) error {
 	cacheFile := filepath.Join(dir, dirListCacheFile)
 	return os.WriteFile(cacheFile, nil, 0666)
 }
 
-func WriteStubFile(localFile string, fi fs.FileInfo) error {
+// WriteStubFile writes a stub file to the local file system.
+// If the file is a directory, it creates corresponding directory.
+func WriteStubFile(localFile string, fi fs.FileInfo, udata uint64) error {
 	if fi.IsDir() {
+		// directory don't need to save FileInfo
 		return os.Mkdir(localFile, 0755)
 	}
 	fi = &fileInfoRemote{fi}
-	b := xdir.BytesFileInfo(fi)
+	b := xdir.BytesFileInfo(fi, udata)
 	dest := base64.URLEncoding.EncodeToString(b)
 	// don't need to restore mtime for symlink (saved by BytesFileInfo)
 	return os.Symlink(dest, localFile)
+}
+
+// Udata returns the user data from the FileInfo.
+func Udata(fi fs.FileInfo) uint64 {
+	if fi, ok := fi.(interface{ Udata() uint64 }); ok {
+		return fi.Udata()
+	}
+	return 0
+}
+
+// MkStubFile creates a stub file with the specified name, size and mtime.
+func MkStubFile(rootDir string, name string, size int64, mtime time.Time, udata uint64) (err error) {
+	file := filepath.Join(rootDir, name)
+	dir, fname := filepath.Split(file)
+	err = os.MkdirAll(dir, 0755)
+	if err != nil {
+		return
+	}
+	fi := xfs.NewFileInfo(fname, size)
+	fi.Mtime = mtime
+	return WriteStubFile(file, fi, udata)
+}
+
+// ReaddirAll reads all entries in the directory and returns their cached FileInfo.
+func ReaddirAll(localDir string, dir *os.File, offline bool) (fis []fs.FileInfo, err error) {
+	if fis, err = dir.Readdir(-1); err != nil {
+		return
+	}
+	n := 0
+	for _, fi := range fis {
+		name := fi.Name()
+		if strings.HasPrefix(name, SysFilePrefix) { // skip fscache system files
+			continue
+		}
+		if isRemote(fi) {
+			if offline {
+				continue
+			}
+			localFile := filepath.Join(localDir, name)
+			fi = readStubFile(localFile, fi)
+		}
+		fis[n] = fi
+		n++
+	}
+	return fis[:n], nil
+}
+
+// Lstat returns the FileInfo for the specified file or directory.
+func Lstat(localFile string) (fi fs.FileInfo, err error) {
+	fi, err = os.Lstat(localFile)
+	if err != nil {
+		return
+	}
+	if fi.IsDir() {
+		if checkDirCached(localFile) == nil { // no dir cache
+			fi = &fileInfoRemote{fi}
+		}
+	} else if isRemote(fi) {
+		fi = readStubFile(localFile, fi)
+	}
+	return
 }
 
 func readStubFile(localFile string, fi fs.FileInfo) fs.FileInfo {
@@ -109,6 +177,7 @@ func readdir(f http.File) ([]fs.FileInfo, error) {
 
 // -----------------------------------------------------------------------------------------
 
+/* TODO(xsw): cache file
 type objFile struct {
 	http.File
 	localFile string
@@ -129,6 +198,7 @@ func (p *objFile) Close() error {
 	}
 	return file.Close()
 }
+*/
 
 type fileInfoRemote struct {
 	fs.FileInfo
@@ -147,48 +217,18 @@ type remote struct {
 }
 
 func (p *remote) ReaddirAll(localDir string, dir *os.File, offline bool) (fis []fs.FileInfo, err error) {
-	if fis, err = dir.Readdir(-1); err != nil {
-		return
-	}
-	n := 0
-	for _, fi := range fis {
-		name := fi.Name()
-		if strings.HasPrefix(name, SysFilePrefix) { // skip fscache system files
-			continue
-		}
-		if isRemote(fi) {
-			if offline {
-				continue
-			}
-			localFile := filepath.Join(localDir, name)
-			fi = readStubFile(localFile, fi)
-		}
-		fis[n] = fi
-		n++
-	}
-	return fis[:n], nil
+	return ReaddirAll(localDir, dir, offline)
 }
 
 func (p *remote) Lstat(localFile string) (fi fs.FileInfo, err error) {
-	fi, err = os.Lstat(localFile)
-	if err != nil {
-		return
-	}
-	if fi.IsDir() {
-		if checkDirCached(localFile) == nil { // no dir cache
-			fi = &fileInfoRemote{fi}
-		}
-	} else if isRemote(fi) {
-		fi = readStubFile(localFile, fi)
-	}
-	return
+	return Lstat(localFile)
 }
 
 func (p *remote) SyncLstat(local string, name string) (fi fs.FileInfo, err error) {
 	return nil, os.ErrNotExist
 }
 
-func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
+func (p *remote) SyncOpen(local string, name string, fi fs.FileInfo) (f http.File, err error) {
 	f, err = p.bucket.Open(name)
 	if err != nil {
 		log.Printf(`[ERROR] bucket.Open("%s"): %v\n`, name, err)
@@ -197,7 +237,7 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 	if debugNet {
 		log.Println("[INFO] ==> bucket.Open", name)
 	}
-	if f.(interface{ IsDir() bool }).IsDir() {
+	if fi.IsDir() {
 		fis, e := readdir(f)
 		if e != nil {
 			log.Printf(`[ERROR] Readdir("%s"): %v\n`, name, e)
@@ -211,26 +251,29 @@ func (p *remote) SyncOpen(local string, name string) (f http.File, err error) {
 			base := filepath.Join(local, name)
 			for _, fi := range fis {
 				itemFile := base + "/" + fi.Name()
-				if WriteStubFile(itemFile, fi) != nil {
+				if WriteStubFile(itemFile, fi, 0) != nil {
 					nError++
 				}
 			}
 			if nError == 0 {
-				TouchDirCached(base)
+				MarkDirCached(base)
 			} else {
 				log.Printf("[WARN] writeStubFile fail (%d errors)", nError)
 			}
 		}()
 		return xfs.Dir(f, fis), nil
 	}
+	/* TODO(xsw):
 	if p.cacheFile {
 		localFile := filepath.Join(local, name)
 		f = &objFile{f, localFile, p.notify}
 	}
+	*/
 	return
 }
 
-func (p *remote) Init(local string, offline bool) {
+func (p *remote) Init(local string, offline bool) error {
+	return nil
 }
 
 // -----------------------------------------------------------------------------------------
@@ -239,6 +282,7 @@ type NotifyFile interface {
 	NotifyFile(ctx context.Context, name string, fi fs.FileInfo)
 }
 
+// NewRemote creates a new remote file system.
 func NewRemote(fsRemote http.FileSystem, notifyOrNil NotifyFile, cacheFile bool) (ret cached.Remote, err error) {
 	return &remote{fsRemote, notifyOrNil, cacheFile}, nil
 }
