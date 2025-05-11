@@ -28,8 +28,8 @@ import (
 	"time"
 
 	xfs "github.com/qiniu/x/http/fs"
-	"github.com/qiniu/x/http/fs/cached"
-	xdir "github.com/qiniu/x/http/fs/cached/dir"
+	"github.com/qiniu/x/http/fs/cached.v1"
+	xdir "github.com/qiniu/x/http/fs/cached.v1/dir"
 )
 
 var (

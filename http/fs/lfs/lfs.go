@@ -28,7 +28,7 @@ import (
 	"strings"
 
 	xfs "github.com/qiniu/x/http/fs"
-	"github.com/qiniu/x/http/fs/cached"
+	"github.com/qiniu/x/http/fs/cached.v1"
 )
 
 // -----------------------------------------------------------------------------------------
