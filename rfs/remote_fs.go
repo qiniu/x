@@ -25,18 +25,22 @@ import (
 var (
 	// ErrChangeMark is returned when the change mark is invalid.
 	ErrChangeMark = errors.New("invalid change mark")
+
+	// ErrNoMoreChanges is returned when there are no more changes to fetch.
+	ErrNoMoreChanges = errors.New("no more changes")
 )
 
 // Change represents a change in the file system.
 type Change struct {
 	Name    string
 	OldName string
-	Info    fs.FileInfo
+	Info    fs.FileInfo // nil if deleted
 }
 
 // Changes is used to fetch changes from a remote source.
 type Changes interface {
 	// if markChg != "", it only walks changed files after markChg.
 	// if can't understand this markChg, it should return ErrChangeMark.
+	// returns ErrNoMoreChanges if no more changes (but chgs still may not empty).
 	Changes(ctx context.Context, markChg string) (chgs []Change, markChgNext string, err error)
 }
