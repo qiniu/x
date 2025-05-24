@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2021 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package gop
+package xgo
 
 const (
-	GopPackage = true // to indicate this is a Go+ package
+	GopPackage = true // to indicate this is a XGo package
 )
 
 // -----------------------------------------------------------------------------

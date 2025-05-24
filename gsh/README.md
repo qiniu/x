@@ -1,14 +1,14 @@
 gsh - An alternative to write shell scripts
 ======
 
-[![Language](https://img.shields.io/badge/language-Go+-blue.svg)](https://github.com/goplus/gop)
+[![Language](https://img.shields.io/badge/language-XGo-blue.svg)](https://github.com/goplus/gop)
 [![GitHub release](https://img.shields.io/github/v/tag/goplus/gop.svg?label=Go%2b+release)](https://github.com/goplus/gop/releases)
 [![Discord](https://img.shields.io/badge/Discord-online-success.svg?logo=discord&logoColor=white)](https://discord.gg/mYjWCJDcAr)
 [![GoDoc](https://pkg.go.dev/badge/github.com/qiniu/x/gsh.svg)](https://pkg.go.dev/github.com/qiniu/x/gsh)
 
 This is an alternative to write shell scripts.
 
-Yes, now you can write `shell script` in Go+. It supports all shell commands.
+Yes, now you can write `shell script` in XGo. It supports all shell commands.
 
 
 ## Usage
@@ -21,7 +21,7 @@ mkdir "testgsh"
 
 You don't need a `go.mod` file, just enter `gop run ./example.gsh` directly to run.
 
-It's strange to you that the file extension of Go+ source is not `.gop` but `.gsh`. It is only because Go+ register `.gsh` as a builtin [classfile](https://github.com/goplus/gop/blob/main/doc/classfile.md).
+It's strange to you that the file extension of XGo source is not `.xgo` but `.gsh`. It is only because XGo register `.gsh` as a builtin [classfile](https://github.com/goplus/gop/blob/main/doc/classfile.md).
 
 We can change [example.gsh](demo/example/example.gsh) more complicated:
 
@@ -72,7 +72,7 @@ or:
 exec "mkdir testgsh"
 ```
 
-If a shell command is a Go/Go+ language keyword (eg. `go`), or the command is a relative or absolute path, you can only execute it in the latter two ways:
+If a shell command is a Go/XGo language keyword (eg. `go`), or the command is a relative or absolute path, you can only execute it in the latter two ways:
 
 ```coffee
 exec "go", "version"
@@ -165,7 +165,7 @@ total 72
 -rw-r--r--  1 xushiwei  staff   1938 Jun 19 10:00 gop_autogen.go
 ```
 
-We can use [Go+ powerful built-in data processing capabilities](https://github.com/goplus/gop/blob/main/doc/docs.md#data-processing) to process captured `output`:
+We can use [XGo powerful built-in data processing capabilities](https://github.com/goplus/gop/blob/main/doc/docs.md#data-processing) to process captured `output`:
 
 ```coffee
 type file struct {

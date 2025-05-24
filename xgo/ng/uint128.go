@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 The GoPlus Authors (goplus.org). All rights reserved.
+ * Copyright (c) 2025 The XGo Authors (xgo.dev). All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	GopPackage = true // to indicate this is a Go+ package
+	GopPackage = true // to indicate this is a XGo package
 )
 
 const (
@@ -40,7 +40,7 @@ const (
 )
 
 //
-// Gop_: Go+ object prefix
+// Gop_: XGo object prefix
 // Gop_xxx_Cast: type Gop_xxx typecast
 // xxxx__N: the Nth overload function
 //
