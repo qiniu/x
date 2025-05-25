@@ -33,6 +33,14 @@ func Fatal(args ...any) {
 	os.Exit(1)
 }
 
+// Check is a helper function to check the error.
+func Check(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
 // ----------------------------------------------------------------------------
 
 // LineIter is an iterator that reads lines from a reader.
