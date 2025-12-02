@@ -38,6 +38,12 @@ type App struct {
 	err  error
 }
 
+// InitApp initializes App instance.
+// Provided to extend the App type.
+func InitApp(app *App) {
+	app.initApp()
+}
+
 func (p *App) initApp() {
 	p.fin = os.Stdin
 	p.fout = os.Stdout
