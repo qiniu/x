@@ -38,8 +38,8 @@ type App struct {
 	err  error
 }
 
-// InitApp initializes App instance.
-// Provided to extend the App type.
+// InitApp initializes an App instance. It is provided so that an App instance
+// embedded in a struct can be initialized from another package.
 func InitApp(app *App) {
 	app.initApp()
 }
