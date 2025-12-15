@@ -25,4 +25,5 @@ _testmain.go
 *.prof
 
 testgsh*
+xgo_autogen*.go
 gop_autogen*.go

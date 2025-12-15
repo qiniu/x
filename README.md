@@ -18,7 +18,7 @@ If you are using it and would like to let us know, you can submit a [Pull Reques
 <div align="center">
 <p></p>
 <p>
-  <a href="https://github.com/goplus/gop"><img width="80" src="https://xgo.dev/favicon.svg"></a>
+  <a href="https://github.com/goplus/xgo"><img width="80" src="https://xgo.dev/favicon.svg"></a>
 </p>
 <h3>The XGo Programming Language</h3>
 </div>
