@@ -80,7 +80,7 @@ func (p *App) Exec__0(env map[string]string, name string, args ...string) error 
 }
 
 // Exec executes a shell command line with $env variables support.
-//   - exec "GOP_GOCMD=tinygo gop run ."
+//   - exec "XGO_GOCMD=tinygo xgo run ."
 //   - exec "ls -l $HOME"
 func (p *App) Exec__1(cmdline string) error {
 	var iCmd = -1
