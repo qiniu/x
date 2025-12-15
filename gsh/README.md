@@ -1,8 +1,8 @@
 gsh - An alternative to write shell scripts
 ======
 
-[![Language](https://img.shields.io/badge/language-XGo-blue.svg)](https://github.com/goplus/gop)
-[![GitHub release](https://img.shields.io/github/v/tag/goplus/gop.svg?label=Go%2b+release)](https://github.com/goplus/gop/releases)
+[![Language](https://img.shields.io/badge/language-XGo-blue.svg)](https://github.com/goplus/xgo)
+[![GitHub release](https://img.shields.io/github/v/tag/goplus/xgo.svg?label=Go%2b+release)](https://github.com/goplus/xgo/releases)
 [![Discord](https://img.shields.io/badge/Discord-online-success.svg?logo=discord&logoColor=white)](https://discord.gg/mYjWCJDcAr)
 [![GoDoc](https://pkg.go.dev/badge/github.com/qiniu/x/gsh.svg)](https://pkg.go.dev/github.com/qiniu/x/gsh)
 
@@ -19,9 +19,9 @@ First, let's create a file named [example.gsh](demo/hello/example.gsh) and write
 mkdir "testgsh"
 ```
 
-You don't need a `go.mod` file, just enter `gop run ./example.gsh` directly to run.
+You don't need a `go.mod` file, just enter `xgo run ./example.gsh` directly to run.
 
-It's strange to you that the file extension of XGo source is not `.xgo` but `.gsh`. It is only because XGo register `.gsh` as a builtin [classfile](https://github.com/goplus/gop/blob/main/doc/classfile.md).
+It's strange to you that the file extension of XGo source is not `.xgo` but `.gsh`. It is only because XGo register `.gsh` as a builtin [classfile](https://github.com/goplus/xgo/blob/main/doc/classfile.md).
 
 We can change [example.gsh](demo/example/example.gsh) more complicated:
 
@@ -77,7 +77,7 @@ If a shell command is a Go/XGo language keyword (eg. `go`), or the command is a 
 ```coffee
 exec "go", "version"
 exec "./test.sh"
-exec "/usr/bin/env gop run ."
+exec "/usr/bin/env xgo run ."
 ```
 
 You can also specify environment variables to run:
@@ -162,10 +162,10 @@ total 72
 -rw-r--r--  1 xushiwei  staff    365 Jun 19 00:25 example.gsh
 -rw-r--r--  1 xushiwei  staff    126 Jun 19 09:33 go.mod
 -rw-r--r--  1 xushiwei  staff    165 Jun 19 09:33 go.sum
--rw-r--r--  1 xushiwei  staff   1938 Jun 19 10:00 gop_autogen.go
+-rw-r--r--  1 xushiwei  staff   1938 Jun 19 10:00 xgo_autogen.go
 ```
 
-We can use [XGo powerful built-in data processing capabilities](https://github.com/goplus/gop/blob/main/doc/docs.md#data-processing) to process captured `output`:
+We can use [XGo powerful built-in data processing capabilities](https://github.com/goplus/xgo/blob/main/doc/docs.md#data-processing) to process captured `output`:
 
 ```coffee
 type file struct {
