@@ -31,7 +31,7 @@ If you are using it and would like to let us know, you can submit a [Pull Reques
 <p>
   <a href="https://github.com/goplus/spx"><img width="100" src="https://github.com/goplus/FlappyCalf/raw/main/assets/FlappyCalf.jpg"></a>
 </p>
-<h3>spx - A 2D Game Engine for STEM education</h3>
+<h3>spx - A Scratch Compatible 2D Game Engine</h3>
 </div>
 
 </td>
