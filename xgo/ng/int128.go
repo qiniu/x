@@ -161,7 +161,7 @@ func Int128_Cast__9(v *big.Int) (out Int128, inRange bool) {
 		if cmp := u.Cmp__1(Uint128{hi: 0x8000000000000000, lo: 0}); cmp > 0 {
 			out, inRange = Int128{hi: 0x8000000000000000, lo: 0}, false
 		} else {
-			out = Int128(u).Gop_Neg()
+			out = Int128(u).XGo_Neg()
 		}
 	} else {
 		if cmp := u.Cmp__1(Uint128{hi: maxInt64, lo: maxUint64}); cmp > 0 {
@@ -178,39 +178,39 @@ func Int128_Cast__a() Int128 {
 	return Int128{}
 }
 
-// Gop_Rcast: func uint128(v int128) uint128
-func (i Int128) Gop_Rcast__0() Uint128 {
+// XGo_Rcast: func uint128(v int128) uint128
+func (i Int128) XGo_Rcast__0() Uint128 {
 	return Uint128(i)
 }
 
-// Gop_Rcast: func uint128(v int128) (uint128, bool)
-func (i Int128) Gop_Rcast__1() (out Uint128, inRange bool) {
+// XGo_Rcast: func uint128(v int128) (uint128, bool)
+func (i Int128) XGo_Rcast__1() (out Uint128, inRange bool) {
 	return Uint128(i), i.hi&signBit == 0
 }
 
-// Gop_Rcast: func int64(v int128) int64
-func (i Int128) Gop_Rcast__2() int64 {
+// XGo_Rcast: func int64(v int128) int64
+func (i Int128) XGo_Rcast__2() int64 {
 	if i.hi&signBit == 0 {
 		return int64(i.lo)
 	}
 	return -int64(^(i.lo - 1))
 }
 
-// Gop_Rcast: func int64(v int128) (int64, bool)
-func (i Int128) Gop_Rcast__3() (out int64, inRange bool) {
+// XGo_Rcast: func int64(v int128) (int64, bool)
+func (i Int128) XGo_Rcast__3() (out int64, inRange bool) {
 	if i.hi&signBit == 0 {
 		return int64(i.lo), i.hi == 0 && i.lo <= maxInt64
 	}
 	return -int64(^(i.lo - 1)), i.hi == maxUint64 && i.lo >= 0x8000000000000000
 }
 
-// Gop_Rcast: func uint64(v int128) uint64
-func (i Int128) Gop_Rcast__4() uint64 {
+// XGo_Rcast: func uint64(v int128) uint64
+func (i Int128) XGo_Rcast__4() uint64 {
 	return i.lo
 }
 
-// Gop_Rcast: func uint64(v int128) (uint64, bool)
-func (i Int128) Gop_Rcast__5() (out uint64, inRange bool) {
+// XGo_Rcast: func uint64(v int128) (uint64, bool)
+func (i Int128) XGo_Rcast__5() (out uint64, inRange bool) {
 	return i.lo, i.hi == 0
 }
 
@@ -276,83 +276,83 @@ func (i Int128) Sign() int {
 	return -1
 }
 
-func (i *Int128) Gop_Inc() {
+func (i *Int128) XGo_Inc() {
 	i.lo++
 	if i.lo == 0 {
 		i.hi++
 	}
 }
 
-func (i *Int128) Gop_Dec() {
+func (i *Int128) XGo_Dec() {
 	if i.lo == 0 {
 		i.hi--
 	}
 	i.lo--
 }
 
-// Gop_AddAssign: func (a *int128) += (b int128)
-func (i *Int128) Gop_AddAssign(b Int128) {
-	*i = i.Gop_Add__1(b)
+// XGo_AddAssign: func (a *int128) += (b int128)
+func (i *Int128) XGo_AddAssign(b Int128) {
+	*i = i.XGo_Add__1(b)
 }
 
-// Gop_SubAssign: func (a *int128) -= (b int128)
-func (i *Int128) Gop_SubAssign(b Int128) {
-	*i = i.Gop_Sub__1(b)
+// XGo_SubAssign: func (a *int128) -= (b int128)
+func (i *Int128) XGo_SubAssign(b Int128) {
+	*i = i.XGo_Sub__1(b)
 }
 
-// Gop_MulAssign: func (a *int128) *= (b int128)
-func (i *Int128) Gop_MulAssign(b Int128) {
-	*i = i.Gop_Mul__1(b)
+// XGo_MulAssign: func (a *int128) *= (b int128)
+func (i *Int128) XGo_MulAssign(b Int128) {
+	*i = i.XGo_Mul__1(b)
 }
 
-// Gop_QuoAssign: func (a *int128) /= (b int128) {
-func (i *Int128) Gop_QuoAssign(b Int128) {
-	*i = i.Gop_Quo__1(b)
+// XGo_QuoAssign: func (a *int128) /= (b int128) {
+func (i *Int128) XGo_QuoAssign(b Int128) {
+	*i = i.XGo_Quo__1(b)
 }
 
-// Gop_RemAssign: func (a *int128) %= (b int128)
-func (i *Int128) Gop_RemAssign(b Int128) {
-	*i = i.Gop_Rem__1(b)
+// XGo_RemAssign: func (a *int128) %= (b int128)
+func (i *Int128) XGo_RemAssign(b Int128) {
+	*i = i.XGo_Rem__1(b)
 }
 
-// Gop_OrAssign: func (a *int128) |= (b int128)
-func (i *Int128) Gop_OrAssign(b Int128) {
-	*i = i.Gop_Or(b)
+// XGo_OrAssign: func (a *int128) |= (b int128)
+func (i *Int128) XGo_OrAssign(b Int128) {
+	*i = i.XGo_Or(b)
 }
 
-// Gop_XorAssign: func (a *int128) ^= (b int128)
-func (i *Int128) Gop_XorAssign(b Int128) {
-	*i = i.Gop_Xor(b)
+// XGo_XorAssign: func (a *int128) ^= (b int128)
+func (i *Int128) XGo_XorAssign(b Int128) {
+	*i = i.XGo_Xor(b)
 }
 
-// Gop_AndAssign: func (a *int128) &= (b int128)
-func (i *Int128) Gop_AndAssign(b Int128) {
-	*i = i.Gop_And(b)
+// XGo_AndAssign: func (a *int128) &= (b int128)
+func (i *Int128) XGo_AndAssign(b Int128) {
+	*i = i.XGo_And(b)
 }
 
-// Gop_AndNotAssign: func (a *int128) &^= (b int128)
-func (i *Int128) Gop_AndNotAssign(b Int128) {
-	*i = i.Gop_AndNot(b)
+// XGo_AndNotAssign: func (a *int128) &^= (b int128)
+func (i *Int128) XGo_AndNotAssign(b Int128) {
+	*i = i.XGo_AndNot(b)
 }
 
-// Gop_LshAssign: func (a *int128) <<= (n untyped_uint)
-func (i *Int128) Gop_LshAssign(n Gop_ninteger) {
-	*i = i.Gop_Lsh(n)
+// XGo_LshAssign: func (a *int128) <<= (n untyped_uint)
+func (i *Int128) XGo_LshAssign(n XGo_ninteger) {
+	*i = i.XGo_Lsh(n)
 }
 
-// Gop_RshAssign: func (a *int128) >>= (n untyped_uint)
-func (i *Int128) Gop_RshAssign(n Gop_ninteger) {
-	*i = i.Gop_Rsh(n)
+// XGo_RshAssign: func (a *int128) >>= (n untyped_uint)
+func (i *Int128) XGo_RshAssign(n XGo_ninteger) {
+	*i = i.XGo_Rsh(n)
 }
 
-func (i Int128) Gop_Add__1(n Int128) (v Int128) {
+func (i Int128) XGo_Add__1(n Int128) (v Int128) {
 	var carry uint64
 	v.lo, carry = bits.Add64(i.lo, n.lo, 0)
 	v.hi, _ = bits.Add64(i.hi, n.hi, carry)
 	return v
 }
 
-func (i Int128) Gop_Add__0(n int64) (v Int128) {
+func (i Int128) XGo_Add__0(n int64) (v Int128) {
 	var carry uint64
 	v.lo, carry = bits.Add64(i.lo, uint64(n), 0)
 	if n < 0 {
@@ -363,14 +363,14 @@ func (i Int128) Gop_Add__0(n int64) (v Int128) {
 	return v
 }
 
-func (i Int128) Gop_Sub__1(n Int128) (v Int128) {
+func (i Int128) XGo_Sub__1(n Int128) (v Int128) {
 	var borrowed uint64
 	v.lo, borrowed = bits.Sub64(i.lo, n.lo, 0)
 	v.hi, _ = bits.Sub64(i.hi, n.hi, borrowed)
 	return v
 }
 
-func (i Int128) Gop_Sub__0(n int64) (v Int128) {
+func (i Int128) XGo_Sub__0(n int64) (v Int128) {
 	var borrowed uint64
 	if n < 0 {
 		v.lo, borrowed = bits.Sub64(i.lo, uint64(n), 0)
@@ -382,7 +382,7 @@ func (i Int128) Gop_Sub__0(n int64) (v Int128) {
 	return v
 }
 
-func (i Int128) Gop_Neg() (v Int128) {
+func (i Int128) XGo_Neg() (v Int128) {
 	if i.lo == 0 && i.hi == 0 {
 		return
 	}
@@ -399,7 +399,7 @@ func (i Int128) Gop_Neg() (v Int128) {
 	return v
 }
 
-func (i Int128) Gop_Dup() (v Int128) {
+func (i Int128) XGo_Dup() (v Int128) {
 	return i
 }
 
@@ -483,11 +483,11 @@ func (i Int128) Cmp__0(n int64) int {
 	return -1
 }
 
-func (i Int128) Gop_EQ__1(n Int128) bool {
+func (i Int128) XGo_EQ__1(n Int128) bool {
 	return i.hi == n.hi && i.lo == n.lo
 }
 
-func (i Int128) Gop_EQ__0(n int64) bool {
+func (i Int128) XGo_EQ__0(n int64) bool {
 	var nhi uint64
 	var nlo = uint64(n)
 	if n < 0 {
@@ -496,7 +496,7 @@ func (i Int128) Gop_EQ__0(n int64) bool {
 	return i.hi == nhi && i.lo == nlo
 }
 
-func (i Int128) Gop_GT__1(n Int128) bool {
+func (i Int128) XGo_GT__1(n Int128) bool {
 	if i.hi&signBit == n.hi&signBit {
 		return i.hi > n.hi || (i.hi == n.hi && i.lo > n.lo)
 	} else if i.hi&signBit == 0 {
@@ -505,7 +505,7 @@ func (i Int128) Gop_GT__1(n Int128) bool {
 	return false
 }
 
-func (i Int128) Gop_GT__0(n int64) bool {
+func (i Int128) XGo_GT__0(n int64) bool {
 	var nhi uint64
 	var nlo = uint64(n)
 	if n < 0 {
@@ -520,7 +520,7 @@ func (i Int128) Gop_GT__0(n int64) bool {
 	return false
 }
 
-func (i Int128) Gop_GE__1(n Int128) bool {
+func (i Int128) XGo_GE__1(n Int128) bool {
 	if i.hi == n.hi && i.lo == n.lo {
 		return true
 	}
@@ -532,7 +532,7 @@ func (i Int128) Gop_GE__1(n Int128) bool {
 	return false
 }
 
-func (i Int128) Gop_GE__0(n int64) bool {
+func (i Int128) XGo_GE__0(n int64) bool {
 	var nhi uint64
 	var nlo = uint64(n)
 	if n < 0 {
@@ -550,7 +550,7 @@ func (i Int128) Gop_GE__0(n int64) bool {
 	return false
 }
 
-func (i Int128) Gop_LT__1(n Int128) bool {
+func (i Int128) XGo_LT__1(n Int128) bool {
 	if i.hi&signBit == n.hi&signBit {
 		return i.hi < n.hi || (i.hi == n.hi && i.lo < n.lo)
 	} else if i.hi&signBit != 0 {
@@ -559,7 +559,7 @@ func (i Int128) Gop_LT__1(n Int128) bool {
 	return false
 }
 
-func (i Int128) Gop_LT__0(n int64) bool {
+func (i Int128) XGo_LT__0(n int64) bool {
 	var nhi uint64
 	var nlo = uint64(n)
 	if n < 0 {
@@ -574,7 +574,7 @@ func (i Int128) Gop_LT__0(n int64) bool {
 	return false
 }
 
-func (i Int128) Gop_LE__1(n Int128) bool {
+func (i Int128) XGo_LE__1(n Int128) bool {
 	if i.hi == n.hi && i.lo == n.lo {
 		return true
 	}
@@ -586,7 +586,7 @@ func (i Int128) Gop_LE__1(n Int128) bool {
 	return false
 }
 
-func (i Int128) Gop_LE__0(n int64) bool {
+func (i Int128) XGo_LE__0(n int64) bool {
 	var nhi uint64
 	var nlo = uint64(n)
 	if n < 0 {
@@ -604,35 +604,35 @@ func (i Int128) Gop_LE__0(n int64) bool {
 	return false
 }
 
-func (i Int128) Gop_And(n Int128) Int128 {
+func (i Int128) XGo_And(n Int128) Int128 {
 	i.hi &= n.hi
 	i.lo &= n.lo
 	return i
 }
 
-func (i Int128) Gop_AndNot(n Int128) Int128 {
+func (i Int128) XGo_AndNot(n Int128) Int128 {
 	i.hi &^= n.hi
 	i.lo &^= n.lo
 	return i
 }
 
-func (i Int128) Gop_Not() Int128 {
+func (i Int128) XGo_Not() Int128 {
 	return Int128{hi: ^i.hi, lo: ^i.lo}
 }
 
-func (i Int128) Gop_Or(n Int128) Int128 {
+func (i Int128) XGo_Or(n Int128) Int128 {
 	i.hi |= n.hi
 	i.lo |= n.lo
 	return i
 }
 
-func (i Int128) Gop_Xor(v Int128) Int128 {
+func (i Int128) XGo_Xor(v Int128) Int128 {
 	i.hi ^= v.hi
 	i.lo ^= v.lo
 	return i
 }
 
-func (i Int128) Gop_Lsh(n Gop_ninteger) Int128 {
+func (i Int128) XGo_Lsh(n XGo_ninteger) Int128 {
 	if n < 64 {
 		i.hi = (i.hi << n) | (i.lo >> (64 - n))
 		i.lo <<= n
@@ -643,7 +643,7 @@ func (i Int128) Gop_Lsh(n Gop_ninteger) Int128 {
 	return i
 }
 
-func (i Int128) Gop_Rsh(n Gop_ninteger) Int128 {
+func (i Int128) XGo_Rsh(n XGo_ninteger) Int128 {
 	if n < 64 {
 		i.lo = (i.lo >> n) | (i.hi << (64 - n))
 	} else {
@@ -656,13 +656,13 @@ func (i Int128) Gop_Rsh(n Gop_ninteger) Int128 {
 // Mul returns the product of two I128s.
 //
 // Overflow should wrap around, as per the Go spec.
-func (i Int128) Gop_Mul__1(n Int128) (dest Int128) {
+func (i Int128) XGo_Mul__1(n Int128) (dest Int128) {
 	hi, lo := bits.Mul64(i.lo, n.lo)
 	hi += i.hi*n.lo + i.lo*n.hi
 	return Int128{hi, lo}
 }
 
-func (i Int128) Gop_Mul__0(n int64) Int128 {
+func (i Int128) XGo_Mul__0(n int64) Int128 {
 	nlo := uint64(n)
 	var nhi uint64
 	if n < 0 {
@@ -691,22 +691,22 @@ func (i Int128) Gop_Mul__0(n int64) Int128 {
 //	(and r = 0) due to two's-complement integer overflow.
 func (i Int128) QuoRem__1(by Int128) (q, r Int128) {
 	qSign, rSign := 1, 1
-	if i.Gop_LT__0(0) {
+	if i.XGo_LT__0(0) {
 		qSign, rSign = -1, -1
-		i = i.Gop_Neg()
+		i = i.XGo_Neg()
 	}
-	if by.Gop_LT__0(0) {
+	if by.XGo_LT__0(0) {
 		qSign = -qSign
-		by = by.Gop_Neg()
+		by = by.XGo_Neg()
 	}
 
-	qu, ru := i.Gop_Rcast__0().QuoRem__1(by.Gop_Rcast__0())
+	qu, ru := i.XGo_Rcast__0().QuoRem__1(by.XGo_Rcast__0())
 	q, r = Int128_Cast__7(qu), Int128_Cast__7(ru)
 	if qSign < 0 {
-		q = q.Gop_Neg()
+		q = q.XGo_Neg()
 	}
 	if rSign < 0 {
-		r = r.Gop_Neg()
+		r = r.XGo_Neg()
 	}
 	return q, r
 }
@@ -714,7 +714,7 @@ func (i Int128) QuoRem__1(by Int128) (q, r Int128) {
 func (i Int128) QuoRem__0(by int64) (q, r Int128) {
 	ineg := i.hi&signBit != 0
 	if ineg {
-		i = i.Gop_Neg()
+		i = i.XGo_Neg()
 	}
 	byneg := by < 0
 	if byneg {
@@ -729,10 +729,10 @@ func (i Int128) QuoRem__0(by int64) (q, r Int128) {
 		q.lo, r.lo = bits.Div64(r.lo, i.lo, n)
 	}
 	if ineg != byneg {
-		q = q.Gop_Neg()
+		q = q.XGo_Neg()
 	}
 	if ineg {
-		r = r.Gop_Neg()
+		r = r.XGo_Neg()
 	}
 	return q, r
 }
@@ -740,29 +740,29 @@ func (i Int128) QuoRem__0(by int64) (q, r Int128) {
 // Quo returns the quotient x/y for y != 0. If y == 0, a division-by-zero
 // run-time panic occurs. Quo implements truncated division (like Go); see
 // QuoRem for more details.
-func (i Int128) Gop_Quo__1(by Int128) (q Int128) {
+func (i Int128) XGo_Quo__1(by Int128) (q Int128) {
 	qSign := 1
-	if i.Gop_LT__0(0) {
+	if i.XGo_LT__0(0) {
 		qSign = -1
-		i = i.Gop_Neg()
+		i = i.XGo_Neg()
 	}
-	if by.Gop_LT__0(0) {
+	if by.XGo_LT__0(0) {
 		qSign = -qSign
-		by = by.Gop_Neg()
+		by = by.XGo_Neg()
 	}
 
-	qu := i.Gop_Rcast__0().Gop_Quo__1(by.Gop_Rcast__0())
+	qu := i.XGo_Rcast__0().XGo_Quo__1(by.XGo_Rcast__0())
 	q = Int128_Cast__7(qu)
 	if qSign < 0 {
-		q = q.Gop_Neg()
+		q = q.XGo_Neg()
 	}
 	return q
 }
 
-func (i Int128) Gop_Quo__0(by int64) (q Int128) {
+func (i Int128) XGo_Quo__0(by int64) (q Int128) {
 	ineg := i.hi&signBit != 0
 	if ineg {
-		i = i.Gop_Neg()
+		i = i.XGo_Neg()
 	}
 	byneg := by < 0
 	if byneg {
@@ -778,23 +778,23 @@ func (i Int128) Gop_Quo__0(by int64) (q Int128) {
 		q.lo, _ = bits.Div64(rlo, i.lo, n)
 	}
 	if ineg != byneg {
-		q = q.Gop_Neg()
+		q = q.XGo_Neg()
 	}
 	return q
 }
 
-// Gop_Rem returns the remainder of x%y for y != 0. If y == 0, a division-by-zero
-// run-time panic occurs. Gop_Rem implements truncated modulus (like Go); see
+// XGo_Rem returns the remainder of x%y for y != 0. If y == 0, a division-by-zero
+// run-time panic occurs. XGo_Rem implements truncated modulus (like Go); see
 // QuoRem for more details.
-func (i Int128) Gop_Rem__1(by Int128) (r Int128) {
+func (i Int128) XGo_Rem__1(by Int128) (r Int128) {
 	_, r = i.QuoRem__1(by)
 	return r
 }
 
-func (i Int128) Gop_Rem__0(by int64) (r Int128) {
+func (i Int128) XGo_Rem__0(by int64) (r Int128) {
 	ineg := i.hi&signBit != 0
 	if ineg {
-		i = i.Gop_Neg()
+		i = i.XGo_Neg()
 	}
 	if by < 0 {
 		by = -by
@@ -808,7 +808,7 @@ func (i Int128) Gop_Rem__0(by int64) (r Int128) {
 		_, r.lo = bits.Div64(r.lo, i.lo, n)
 	}
 	if ineg {
-		r = r.Gop_Neg()
+		r = r.XGo_Neg()
 	}
 	return r
 }

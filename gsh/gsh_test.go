@@ -66,7 +66,7 @@ func capout(app *App, doSth func()) (ret string, err error) {
 
 func lasterr(app *App, err error) {
 	mockRunErr = err
-	app.Gop_Exec("ls")
+	app.XGo_Exec("ls")
 	mockRunErr = nil
 }
 
@@ -81,14 +81,14 @@ type myApp struct {
 
 func (p *myApp) MainEntry() {
 	t := p.t
-	err := p.Gop_Exec("ls", "-l")
+	err := p.XGo_Exec("ls", "-l")
 	check(t, err)
 	err = p.Exec__2("ls", "-l")
 	check(t, err)
 }
 
 func TestMainEntry(t *testing.T) {
-	Gopt_App_Main(&myApp{t: t})
+	XGot_App_Main(&myApp{t: t})
 }
 
 func TestOS(t *testing.T) {
@@ -111,8 +111,8 @@ func TestEnv(t *testing.T) {
 func TestExecWithEnv(t *testing.T) {
 	var app App
 	app.initApp()
-	if v := app.Gop_Env("BAR"); v != "bar" {
-		t.Fatal("app.Gop_Env:", v)
+	if v := app.XGo_Env("BAR"); v != "bar" {
+		t.Fatal("app.XGo_Env:", v)
 	}
 	capout(&app, func() {
 		err := app.Exec__0(M{"FOO": "123"}, "./app", "$FOO")

@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	GopPackage = true
+	XGoPackage = true
 )
 
 // App is project class of this classfile.
@@ -50,8 +50,8 @@ func (p *App) initApp() {
 	p.ferr = os.Stderr
 }
 
-// Gop_Env retrieves the value of the environment variable named by the key.
-func (p *App) Gop_Env(key string) string {
+// XGo_Env retrieves the value of the environment variable named by the key.
+func (p *App) XGo_Env(key string) string {
 	return Sys.Getenv(key)
 }
 
@@ -65,8 +65,8 @@ func (p *App) execWith(env []string, name string, args ...string) error {
 	return p.err
 }
 
-// Gop_Exec executes a shell command.
-func (p *App) Gop_Exec(name string, args ...string) error {
+// XGo_Exec executes a shell command.
+func (p *App) XGo_Exec(name string, args ...string) error {
 	return p.execWith(nil, name, args...)
 }
 
@@ -164,8 +164,8 @@ func (p *App) Output() string {
 	return p.cout
 }
 
-// Gopt_App_Main is main entry of this classfile.
-func Gopt_App_Main(a interface{ initApp() }) {
+// XGot_App_Main is main entry of this classfile.
+func XGot_App_Main(a interface{ initApp() }) {
 	a.initApp()
 	a.(interface{ MainEntry() }).MainEntry()
 }

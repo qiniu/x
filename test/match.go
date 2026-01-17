@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	GopPackage = true
+	XGoPackage = true
 )
 
 type basetype interface {
@@ -117,27 +117,27 @@ func nameCtx(name []string) string {
 }
 
 const (
-	Gopo_Gopt_Case_Match = "Gopt_Case_MatchTBase,Gopt_Case_MatchMap,Gopt_Case_MatchSlice,Gopt_Case_MatchBaseSlice,Gopt_Case_MatchSet,Gopt_Case_MatchAnySet,Gopt_Case_MatchAny"
+	XGoo_XGot_Case_Match = "XGot_Case_MatchTBase,XGot_Case_MatchMap,XGot_Case_MatchSlice,XGot_Case_MatchBaseSlice,XGot_Case_MatchSet,XGot_Case_MatchAnySet,XGot_Case_MatchAny"
 )
 
-func Gopt_Case_MatchTBase[T basetype](t CaseT, expected, got T, name ...string) {
+func XGot_Case_MatchTBase[T basetype](t CaseT, expected, got T, name ...string) {
 	if expected != got {
 		t.Helper()
 		t.Fatalf("unmatched value%s - expected: %v, got: %v\n", nameCtx(name), expected, got)
 	}
 }
 
-func Gopt_Case_MatchMap(t CaseT, expected, got map[string]any, name ...string) {
+func XGot_Case_MatchMap(t CaseT, expected, got map[string]any, name ...string) {
 	t.Helper()
 	idx := len(name)
 	name = append(name, "")
 	for key, ev := range expected {
 		name[idx] = key
-		Gopt_Case_MatchAny(t, ev, got[key], name...)
+		XGot_Case_MatchAny(t, ev, got[key], name...)
 	}
 }
 
-func Gopt_Case_MatchSlice[T any](t CaseT, expected []T, got []any, name ...string) {
+func XGot_Case_MatchSlice[T any](t CaseT, expected []T, got []any, name ...string) {
 	t.Helper()
 	if len(expected) != len(got) {
 		t.Fatalf("unmatched slice%s length - expected: %d, got: %d\n", nameCtx(name), len(expected), len(got))
@@ -148,11 +148,11 @@ func Gopt_Case_MatchSlice[T any](t CaseT, expected []T, got []any, name ...strin
 	}
 	for i, ev := range expected {
 		name[idx] = "[" + strconv.Itoa(i) + "]"
-		Gopt_Case_MatchAny(t, ev, got[i], name...)
+		XGot_Case_MatchAny(t, ev, got[i], name...)
 	}
 }
 
-func Gopt_Case_MatchBaseSlice[T baseelem](t CaseT, expected, got []T, name ...string) {
+func XGot_Case_MatchBaseSlice[T baseelem](t CaseT, expected, got []T, name ...string) {
 	t.Helper()
 	if len(expected) != len(got) {
 		t.Fatalf("unmatched slice%s length - expected: %d, got: %d\n", nameCtx(name), len(expected), len(got))
@@ -163,11 +163,11 @@ func Gopt_Case_MatchBaseSlice[T baseelem](t CaseT, expected, got []T, name ...st
 	}
 	for i, ev := range expected {
 		name[idx] = "[" + strconv.Itoa(i) + "]"
-		Gopt_Case_MatchTBase(t, ev, got[i], name...)
+		XGot_Case_MatchTBase(t, ev, got[i], name...)
 	}
 }
 
-func Gopt_Case_MatchSet[T baseelem](t CaseT, expected TySet[T], got []T, name ...string) {
+func XGot_Case_MatchSet[T baseelem](t CaseT, expected TySet[T], got []T, name ...string) {
 	if len(expected) != len(got) {
 		t.Fatalf("unmatched set%s length - expected: %d, got: %d\n", nameCtx(name), len(expected), len(got))
 	}
@@ -178,7 +178,7 @@ func Gopt_Case_MatchSet[T baseelem](t CaseT, expected TySet[T], got []T, name ..
 	}
 }
 
-func Gopt_Case_MatchAnySet(t CaseT, expected TyAnySet, got any, name ...string) {
+func XGot_Case_MatchAnySet(t CaseT, expected TyAnySet, got any, name ...string) {
 	if gv, ok := got.([]any); ok {
 		matchAnySet(t, expected, gv)
 		return
@@ -224,97 +224,97 @@ func hasAnyElem(v any, expected []any) bool {
 	return false
 }
 
-func Gopt_Case_MatchAny(t CaseT, expected, got any, name ...string) {
+func XGot_Case_MatchAny(t CaseT, expected, got any, name ...string) {
 	t.Helper()
 retry:
 	switch ev := expected.(type) {
 	case string:
 		switch gv := got.(type) {
 		case string:
-			Gopt_Case_MatchTBase(t, ev, gv, name...)
+			XGot_Case_MatchTBase(t, ev, gv, name...)
 			return
 		case *Var__0[string]:
-			Gopt_Case_MatchTBase(t, ev, gv.Val(), name...)
+			XGot_Case_MatchTBase(t, ev, gv.Val(), name...)
 			return
 		}
 	case int:
 		switch gv := got.(type) {
 		case int:
-			Gopt_Case_MatchTBase(t, ev, gv, name...)
+			XGot_Case_MatchTBase(t, ev, gv, name...)
 			return
 		case *Var__0[int]:
-			Gopt_Case_MatchTBase(t, ev, gv.Val(), name...)
+			XGot_Case_MatchTBase(t, ev, gv.Val(), name...)
 			return
 		}
 	case bool:
 		switch gv := got.(type) {
 		case bool:
-			Gopt_Case_MatchTBase(t, ev, gv, name...)
+			XGot_Case_MatchTBase(t, ev, gv, name...)
 			return
 		case *Var__0[bool]:
-			Gopt_Case_MatchTBase(t, ev, gv.Val(), name...)
+			XGot_Case_MatchTBase(t, ev, gv.Val(), name...)
 			return
 		}
 	case float64:
 		switch gv := got.(type) {
 		case float64:
-			Gopt_Case_MatchTBase(t, ev, gv, name...)
+			XGot_Case_MatchTBase(t, ev, gv, name...)
 			return
 		case *Var__0[float64]:
-			Gopt_Case_MatchTBase(t, ev, gv.Val(), name...)
+			XGot_Case_MatchTBase(t, ev, gv.Val(), name...)
 			return
 		}
 	case map[string]any:
 		switch gv := got.(type) {
 		case map[string]any:
-			Gopt_Case_MatchMap(t, ev, gv, name...)
+			XGot_Case_MatchMap(t, ev, gv, name...)
 			return
 		case *Var__1[map[string]any]:
-			Gopt_Case_MatchMap(t, ev, gv.Val(), name...)
+			XGot_Case_MatchMap(t, ev, gv.Val(), name...)
 			return
 		default:
 			if gv, ok := tryToMapAny(got); ok {
-				Gopt_Case_MatchMap(t, ev, gv, name...)
+				XGot_Case_MatchMap(t, ev, gv, name...)
 				return
 			}
 		}
 	case []any:
 		switch gv := got.(type) {
 		case []any:
-			Gopt_Case_MatchSlice(t, ev, gv, name...)
+			XGot_Case_MatchSlice(t, ev, gv, name...)
 			return
 		case *Var__2[[]any]:
-			Gopt_Case_MatchSlice(t, ev, gv.Val(), name...)
+			XGot_Case_MatchSlice(t, ev, gv.Val(), name...)
 			return
 		}
 	case []string:
 		switch gv := got.(type) {
 		case []string:
-			Gopt_Case_MatchBaseSlice(t, ev, gv, name...)
+			XGot_Case_MatchBaseSlice(t, ev, gv, name...)
 			return
 		case *Var__3[[]string]:
-			Gopt_Case_MatchBaseSlice(t, ev, gv.Val(), name...)
+			XGot_Case_MatchBaseSlice(t, ev, gv.Val(), name...)
 			return
 		case []any:
-			Gopt_Case_MatchSlice(t, ev, gv, name...)
+			XGot_Case_MatchSlice(t, ev, gv, name...)
 			return
 		}
 	case TySet[string]:
 		switch gv := got.(type) {
 		case []string:
-			Gopt_Case_MatchSet(t, ev, gv, name...)
+			XGot_Case_MatchSet(t, ev, gv, name...)
 			return
 		case *Var__3[[]string]:
-			Gopt_Case_MatchSet(t, ev, gv.Val(), name...)
+			XGot_Case_MatchSet(t, ev, gv.Val(), name...)
 			return
 		}
 	case TyAnySet:
 		switch gv := got.(type) {
 		case *Var__2[[]any]:
-			Gopt_Case_MatchAnySet(t, ev, gv.Val(), name...)
+			XGot_Case_MatchAnySet(t, ev, gv.Val(), name...)
 			return
 		default:
-			Gopt_Case_MatchAnySet(t, ev, gv, name...)
+			XGot_Case_MatchAnySet(t, ev, gv, name...)
 			return
 		}
 	case *Var__0[string]:
@@ -478,7 +478,7 @@ func (p *Var__0[T]) Match(t CaseT, v T, name ...string) {
 		return
 	}
 	t.Helper()
-	Gopt_Case_MatchTBase(t, p.val, v, name...)
+	XGot_Case_MatchTBase(t, p.val, v, name...)
 }
 
 func (p *Var__0[T]) MatchNil(t CaseT, name ...string) {
@@ -524,7 +524,7 @@ func (p *Var__1[T]) Match(t CaseT, v T, name ...string) {
 		return
 	}
 	t.Helper()
-	Gopt_Case_MatchMap(t, p.val, v, name...)
+	XGot_Case_MatchMap(t, p.val, v, name...)
 }
 
 // -----------------------------------------------------------------------------
@@ -565,7 +565,7 @@ func (p *Var__2[T]) Match(t CaseT, v T, name ...string) {
 		return
 	}
 	t.Helper()
-	Gopt_Case_MatchSlice(t, p.val, v, name...)
+	XGot_Case_MatchSlice(t, p.val, v, name...)
 }
 
 // -----------------------------------------------------------------------------
@@ -606,24 +606,24 @@ func (p *Var__3[T]) Match(t CaseT, v T, name ...string) {
 		return
 	}
 	t.Helper()
-	Gopt_Case_MatchBaseSlice(t, p.val, v, name...)
+	XGot_Case_MatchBaseSlice(t, p.val, v, name...)
 }
 
 // -----------------------------------------------------------------------------
 
-func Gopx_Var_Cast__0[T basetype]() *Var__0[T] {
+func XGox_Var_Cast__0[T basetype]() *Var__0[T] {
 	return new(Var__0[T])
 }
 
-func Gopx_Var_Cast__1[T map[string]any]() *Var__1[T] {
+func XGox_Var_Cast__1[T map[string]any]() *Var__1[T] {
 	return new(Var__1[T])
 }
 
-func Gopx_Var_Cast__2[T []any]() *Var__2[T] {
+func XGox_Var_Cast__2[T []any]() *Var__2[T] {
 	return new(Var__2[T])
 }
 
-func Gopx_Var_Cast__3[T []string]() *Var__3[T] {
+func XGox_Var_Cast__3[T []string]() *Var__3[T] {
 	return new(Var__3[T])
 }
 
