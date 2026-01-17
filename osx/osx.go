@@ -96,7 +96,7 @@ type LineReader struct {
 	r io.Reader
 }
 
-func (p LineReader) Gop_Enum() LineIter {
+func (p LineReader) XGo_Enum() LineIter {
 	return EnumLines(p.r)
 }
 
@@ -112,7 +112,7 @@ type BLineReader struct {
 	r io.Reader
 }
 
-func (p BLineReader) Gop_Enum() BLineIter {
+func (p BLineReader) XGo_Enum() BLineIter {
 	return EnumBLines(p.r)
 }
 

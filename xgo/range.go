@@ -17,7 +17,7 @@
 package xgo
 
 const (
-	GopPackage = true // to indicate this is a XGo package
+	XGoPackage = true // to indicate this is a XGo package
 )
 
 // -----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ func NewRange__0(start, end, step int) *IntRange {
 	return &IntRange{Start: start, End: end, Step: step}
 }
 
-func (p *IntRange) Gop_Enum() *intRangeIter {
+func (p *IntRange) XGo_Enum() *intRangeIter {
 	step := p.Step
 	n := p.End - p.Start + step
 	if step > 0 {
