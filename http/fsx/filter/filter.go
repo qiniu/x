@@ -39,7 +39,7 @@ func init() {
 	fsx.Register(SchemeIgnore, Ignore)
 }
 
-// url = `select: <pattern1>;<paater2>;...;<patternN> | <baseFS>`
+// url = `select: <pattern1>;<pattern2>;...;<patternN> | <baseFS>`
 func Select(ctx context.Context, url string) (fs http.FileSystem, close fsx.Closer, err error) {
 	url = strings.TrimPrefix(url, SchemeSelect+":")
 	patterns, baseFS, close, err := parse(ctx, url)
@@ -50,7 +50,7 @@ func Select(ctx context.Context, url string) (fs http.FileSystem, close fsx.Clos
 	return
 }
 
-// url = `ignore: <pattern1>;<paater2>;...;<patternN> | <baseFS>`
+// url = `ignore: <pattern1>;<pattern2>;...;<patternN> | <baseFS>`
 func Ignore(ctx context.Context, url string) (fs http.FileSystem, close fsx.Closer, err error) {
 	url = strings.TrimPrefix(url, SchemeIgnore+":")
 	patterns, baseFS, close, err := parse(ctx, url)
