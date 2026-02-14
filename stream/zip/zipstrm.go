@@ -19,8 +19,8 @@ package zip
 import (
 	"archive/zip"
 	"io"
+	"io/fs"
 	"strings"
-	"syscall"
 
 	"github.com/qiniu/x/stream"
 )
@@ -33,8 +33,11 @@ type readCloser struct {
 }
 
 func (p *readCloser) Close() error {
-	p.ReadCloser.Close()
-	return p.zipf.Close()
+	err := p.ReadCloser.Close()
+	if err2 := p.zipf.Close(); err2 != nil && err == nil {
+		err = err2
+	}
+	return err
 }
 
 // Open opens a zipped file object.
@@ -42,7 +45,7 @@ func Open(url string) (io.ReadCloser, error) {
 	file := strings.TrimPrefix(url, "zip:")
 	pos := strings.Index(file, "#")
 	if pos <= 0 {
-		return nil, syscall.EINVAL
+		return nil, fs.ErrInvalid
 	}
 	zipfile, name := file[:pos], file[pos+1:]
 	zipf, err := zip.OpenReader(zipfile)
@@ -58,7 +61,7 @@ func Open(url string) (io.ReadCloser, error) {
 			return &readCloser{f, zipf}, nil
 		}
 	}
-	return nil, syscall.ENOENT
+	return nil, fs.ErrNotExist
 }
 
 func init() {

@@ -33,23 +33,24 @@ import (
 // -------------------------------------------------------------------------------------
 
 var (
-	cacheDir = getCacheDir()
+	cacheDir string
+	errInit  error
 )
 
-func getCacheDir() string {
+func init() {
 	root, err := os.UserCacheDir()
 	if err != nil {
-		panic(err)
+		errInit = err
+		return
 	}
-	dir := root + "/qiniu.x.http/"
-	os.MkdirAll(dir, 0755)
-	return dir
+	cacheDir = root + "/qiniu.x.http/"
+	errInit = os.MkdirAll(cacheDir, 0755)
 }
 
 // -------------------------------------------------------------------------------------
 
-// WriteCache writes the http response to cache file.
-func WriteCache(cacheFile string, url string) (err error) {
+// writeCache writes the http response to cache file.
+func writeCache(cacheFile string, url string) (err error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return
@@ -60,20 +61,21 @@ func WriteCache(cacheFile string, url string) (err error) {
 		return
 	}
 	defer f.Close()
-	// TODO(xsw): add checksum to cache file
+	// TODO(xsw): checksum and file size
 	_, err = io.Copy(f, resp.Body)
 	return
 }
 
-// ReadCache reads the cache file and returns a ReadCloser.
-func ReadCache(cacheFile string, fi fs.FileInfo) (ret io.ReadCloser, err error) {
+// readCache reads the cache file and returns a ReadCloser.
+func readCache(cacheFile string, _ fs.FileInfo) (ret io.ReadCloser, err error) {
 	return os.Open(cacheFile)
 }
 
-// -------------------------------------------------------------------------------------
-
 // Open opens a http file object.
 func Open(url_ string) (ret io.ReadCloser, err error) {
+	if errInit != nil {
+		return http.Open(url_) // fallback to direct open
+	}
 	u, err := url.Parse(url_)
 	if err != nil {
 		return
@@ -85,14 +87,14 @@ func Open(url_ string) (ret io.ReadCloser, err error) {
 	fname = fmt.Sprintf("%s-%s%s", fname[:len(fname)-len(ext)], hashstr, ext)
 	file := cacheDir + fname
 	if fi, e := os.Stat(file); e == nil {
-		if ret, err = ReadCache(file, fi); err == nil { // cache hit
+		if ret, err = readCache(file, fi); err == nil { // cache hit
 			return
 		}
 	}
-	if err = WriteCache(file, url_); err != nil {
+	if err = writeCache(file, url_); err != nil {
 		return // write cache failed
 	}
-	return ReadCache(file, nil)
+	return readCache(file, nil)
 }
 
 func init() {
