@@ -40,7 +40,7 @@ func TestBasic(t *testing.T) {
 
 func TestUnknownScheme(t *testing.T) {
 	_, err := stream.Open("bad://foo")
-	if err == nil || err.Error() != "dql/stream.Open bad://foo: unknown scheme" {
+	if err == nil || err.Error() != "stream.Open bad://foo: unknown scheme" {
 		t.Fatal("Open failed:", err)
 	}
 }
