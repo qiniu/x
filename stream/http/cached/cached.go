@@ -50,19 +50,24 @@ func init() {
 // -------------------------------------------------------------------------------------
 
 // writeCache writes the http response to cache file.
-func writeCache(cacheFile string, url string) (err error) {
+func writeCache(cacheDir, fname string, url string) (err error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-	f, err := os.Create(cacheFile)
+	f, err := os.CreateTemp(cacheDir, "*.cache~") // create temp file to avoid concurrent write
 	if err != nil {
 		return
 	}
-	defer f.Close()
-	// TODO(xsw): checksum and file size
+	tempFile := f.Name()
 	_, err = io.Copy(f, resp.Body)
+	f.Close()
+	if err != nil {
+		os.Remove(tempFile)
+	} else {
+		err = os.Rename(tempFile, cacheDir+fname)
+	}
 	return
 }
 
@@ -91,7 +96,7 @@ func Open(url_ string) (ret io.ReadCloser, err error) {
 			return
 		}
 	}
-	if err = writeCache(file, url_); err != nil {
+	if err = writeCache(cacheDir, fname, url_); err != nil {
 		return // write cache failed
 	}
 	return readCache(file, nil)
