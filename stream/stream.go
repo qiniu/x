@@ -54,7 +54,7 @@ func Open(url string) (io.ReadCloser, error) {
 	if open, ok := openers[scheme]; ok {
 		return open(url)
 	}
-	return nil, &fs.PathError{Op: "dql/stream.Open", Err: ErrUnknownScheme, Path: url}
+	return nil, &fs.PathError{Op: "stream.Open", Err: ErrUnknownScheme, Path: url}
 }
 
 func schemeOf(url string) (scheme string) {

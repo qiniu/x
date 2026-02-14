@@ -20,13 +20,20 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 var (
-	// DefaultUserAgent is the default UserAgent and is used by HTTPSource.
+	// DefaultUserAgent is the default User-Agent header value used in HTTP requests.
 	DefaultUserAgent string
-	ReqHeaderProc    func(req *http.Request)
-	Client           = http.DefaultClient
+
+	// ReqHeaderProc is a callback function that allows users to modify
+	// the HTTP request headers before sending the request.
+	ReqHeaderProc func(req *http.Request)
+
+	Client = &http.Client{
+		Timeout: 30 * time.Second,
+	}
 )
 
 // -------------------------------------------------------------------------------------
@@ -41,6 +48,12 @@ func Open(url string) (io.ReadCloser, error) {
 }
 
 // Get sends a GET request to the specified URL.
+//
+// Security: Server-Side Request Forgery (SSRF)
+// The function accepts arbitrary URLs without validation. An attacker can
+// provide URLs to internal network resources (e.g., http://localhost:6379,
+// http://169.254.169.254/latest/meta-data/) to scan internal networks,
+// access cloud metadata services, or interact with internal APIs.
 func Get(url string) (resp *http.Response, err error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

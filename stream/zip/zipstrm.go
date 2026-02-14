@@ -56,11 +56,13 @@ func Open(url string) (io.ReadCloser, error) {
 		if fi.Name == name {
 			f, err := fi.Open()
 			if err != nil {
+				zipf.Close()
 				return nil, err
 			}
 			return &readCloser{f, zipf}, nil
 		}
 	}
+	zipf.Close()
 	return nil, fs.ErrNotExist
 }
 
