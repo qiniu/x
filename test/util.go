@@ -35,6 +35,8 @@ func Fatalf(format string, v ...any) {
 
 // -----------------------------------------------------------------------------
 
+// testingT is an interface that abstracts *testing.T to decouple this package
+// from the testing package dependency.
 type testingT interface {
 	// Errorf is equivalent to Logf followed by Fail.
 	Errorf(format string, args ...any)
