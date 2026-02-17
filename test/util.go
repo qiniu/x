@@ -19,7 +19,6 @@ package test
 import (
 	"log"
 	"os"
-	"testing"
 )
 
 // -----------------------------------------------------------------------------
@@ -36,9 +35,14 @@ func Fatalf(format string, v ...any) {
 
 // -----------------------------------------------------------------------------
 
+type testingT interface {
+	// Errorf is equivalent to Logf followed by Fail.
+	Errorf(format string, args ...any)
+}
+
 // Diff compares the dst and src byte slices.
 // If they are different, it writes the dst to the outfile and logs the differences.
-func Diff(t *testing.T, outfile string, dst, src []byte) bool {
+func Diff(t testingT, outfile string, dst, src []byte) bool {
 	line := 1
 	offs := 0 // line offset
 	for i := 0; i < len(dst) && i < len(src); i++ {
