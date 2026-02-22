@@ -17,7 +17,9 @@
 package stream_test
 
 import (
+	"bytes"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/qiniu/x/stream"
@@ -49,5 +51,40 @@ func TestOpenFile(t *testing.T) {
 	_, err := stream.Open("/bin/not-exists/foo")
 	if err == nil {
 		t.Fatal("Open local file success?")
+	}
+}
+
+func TestReadSource(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+	if _, err := stream.ReadSource(buf); err != nil {
+		t.Fatal("readSource failed:", err)
+	}
+	sr := strings.NewReader("")
+	if _, err := stream.ReadSource(sr); err != nil {
+		t.Fatal("readSource strings.Reader failed:", err)
+	}
+	if _, err := stream.ReadSource(0); err == nil {
+		t.Fatal("readSource int failed: no error?")
+	}
+}
+
+func TestReadSourceLocal(t *testing.T) {
+	if _, err := stream.ReadSourceLocal("", ""); err != nil {
+		t.Fatal("ReadSourceLocal failed:", err)
+	}
+	if _, err := stream.ReadSourceLocal("/foo/bar/not-exists", nil); err == nil {
+		t.Fatal("ReadSourceLocal int failed: no error?")
+	}
+}
+
+func TestReadSourceFromURI(t *testing.T) {
+	if _, err := stream.ReadSourceFromURI("", []byte("abc")); err != nil {
+		t.Fatal("ReadSourceFromURI failed:", err)
+	}
+	if _, err := stream.ReadSourceFromURI("inline:abc", nil); err != nil {
+		t.Fatal("ReadSourceFromURI failed:", err)
+	}
+	if _, err := stream.ReadSourceFromURI("unknown:abc", nil); err == nil {
+		t.Fatal("ReadSourceFromURI failed: no error?")
 	}
 }
