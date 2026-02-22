@@ -111,12 +111,11 @@ func ReadSourceLocal(filename string, src any) ([]byte, error) {
 // ReadSourceFromURI reads the source from the given URI.
 // If src != nil, it reads from src; otherwise, it opens the URI and reads
 // from it.
-func ReadSourceFromURI(uri string, src any) (ret []byte, err error) {
+func ReadSourceFromURI(uri string, src any) ([]byte, error) {
 	if src == nil {
-		var f io.ReadCloser
-		f, err = Open(uri)
+		f, err := Open(uri)
 		if err != nil {
-			return
+			return nil, err
 		}
 		defer f.Close()
 		src = f
