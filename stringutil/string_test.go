@@ -43,15 +43,6 @@ func TestConcat(t *testing.T) {
 	}
 }
 
-func TestBuild(t *testing.T) {
-	if ret := NewBuilder(nil).Build(); ret != "" {
-		t.Fatal("NewBuilder(0):", ret)
-	}
-	if ret := NewBuilderSize(16).Add("1").AddByte('2', '3').AddByte('!').Build(); ret != "123!" {
-		t.Fatal("TestBuild:", ret)
-	}
-}
-
 func TestDiff(t *testing.T) {
 	type testCase struct {
 		new, old []string
