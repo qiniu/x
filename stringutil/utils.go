@@ -16,6 +16,11 @@
 
 package stringutil
 
+import (
+	"unicode"
+	"unicode/utf8"
+)
+
 // Concat concatenates parts of a string together.
 func Concat(parts ...string) string {
 	if len(parts) == 1 {
@@ -30,4 +35,17 @@ func Concat(parts ...string) string {
 		b = append(b, part...)
 	}
 	return String(b)
+}
+
+// Capitalize returns a copy of the string str with the first letter mapped to
+// its upper case.
+func Capitalize(str string) string {
+	c, nc := utf8.DecodeRuneInString(str)
+	if unicode.IsUpper(c) || c == utf8.RuneError {
+		return str
+	}
+	ret := make([]byte, len(str))
+	nr := utf8.EncodeRune(ret, unicode.ToUpper(c))
+	ret = append(ret[:nr], str[nc:]...)
+	return String(ret)
 }
