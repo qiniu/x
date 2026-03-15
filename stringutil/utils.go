@@ -49,3 +49,32 @@ func Capitalize(str string) string {
 	ret = append(ret[:nr], str[nc:]...)
 	return String(ret)
 }
+
+// Contains checks if the classVal is present in the classAttr string, which
+// is a space-separated list of class names.
+func Contains(classAttr, classVal string) bool {
+	n := len(classAttr)
+	m := len(classVal)
+	if m == 0 {
+		return false
+	}
+
+	i := 0
+	for i < n {
+		// Skip whitespace
+		for i < n && classAttr[i] == ' ' {
+			i++
+		}
+		// Mark the start of the current token
+		start := i
+		// Advance to the end of the token
+		for i < n && classAttr[i] != ' ' {
+			i++
+		}
+		// Exact match against classCheck
+		if i-start == m && classAttr[start:i] == classVal {
+			return true
+		}
+	}
+	return false
+}
