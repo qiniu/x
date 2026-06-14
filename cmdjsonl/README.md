@@ -10,6 +10,7 @@ The `application/x-cmdjsonl` format is defined as follows:
 
 - UTF-8 encoding;
 - Each line consists of a `Command` followed by a space and a JSON object, with lines separated by a newline character (`\n`).
+
 Example:
 
 ```
