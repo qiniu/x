@@ -98,6 +98,7 @@ The handler function `fn` must satisfy the following requirements:
 - It must be a function;
 - It must have exactly one parameter, which can be either a pointer or a non-pointer type;
 - It must return zero or one value; if it returns a value, that value's type must be `error`.
+
 If `fn` does not meet these requirements, `HandleFunc` returns an `*InvalidHandler` error.
 
 Examples of parameter types:
