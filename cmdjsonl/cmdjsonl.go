@@ -110,10 +110,20 @@ func (p *ParseError) Error() string {
 // a command followed by a JSON object. It uses the registered handlers to process each
 // command. If any error occurs during reading, parsing, or handling a command, a ParseError
 // is returned with details about the error.
-func (p *Parser) Parse(in io.Reader, maxLineSize int) error {
+func (p Parser) Parse(in io.Reader, maxLineSize int) error {
+	return p.parseEx(in, maxLineSize, false)
+}
+
+// ParseLax is similar to Parse but ignores lines with unknown commands instead of returning
+// an error. This allows the parser to continue processing valid commands even if some lines
+// contain unrecognized commands.
+func (p Parser) ParseLax(in io.Reader, maxLineSize int) error {
+	return p.parseEx(in, maxLineSize, true)
+}
+
+func (p Parser) parseEx(in io.Reader, maxLineSize int, skipUnknownCmd bool) error {
 	lnum := 0
 	r := bufio.NewReaderSize(in, maxLineSize)
-	cmds := p.cmds
 	for {
 		line, isPrefix, err := r.ReadLine()
 		lnum++
@@ -131,8 +141,11 @@ func (p *Parser) Parse(in io.Reader, maxLineSize int) error {
 			return &ParseError{Line: lnum, When: "ParseCommand", Msg: "no space found"}
 		}
 		cmd := string(line[:pos])
-		h, ok := cmds[cmd]
+		h, ok := p.cmds[cmd]
 		if !ok {
+			if skipUnknownCmd {
+				continue
+			}
 			return &ParseError{Line: lnum, When: "ParseCommand", Msg: "unknown command '" + cmd + "'"}
 		}
 		param := reflect.New(h.param)

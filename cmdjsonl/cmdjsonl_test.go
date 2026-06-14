@@ -46,6 +46,10 @@ func parse(p Parser, text string) error {
 	return p.Parse(strings.NewReader(text), 64)
 }
 
+func parseLax(p Parser, text string) error {
+	return p.ParseLax(strings.NewReader(text), 64)
+}
+
 func TestParse(t *testing.T) {
 	type TestCmd struct {
 		Name string
@@ -78,6 +82,18 @@ test {"Name": "Ken", "Age": 30}
 	err = parse(p, `abc {"Name": "Bob", "Age": "30"}`)
 	if err == nil || err.Error() != "1: parse error when ParseCommand: unknown command 'abc'" {
 		t.Error("Parse:", err)
+	}
+	err = parseLax(p, `abc {"Name": "Bob", "Age": "30"}
+test {"Name": "Ken", "Age": 30}
+`)
+	if err != nil {
+		t.Error("ParseLax:", err)
+	}
+	err = parseLax(p, `abc {"Name": "Bob", "Age": "30"}
+test {"Name": "Ken", "Age": 20}
+`)
+	if err == nil || err.Error() != "2: parse error when CallHandler test: handler error" {
+		t.Error("ParseLax:", err)
 	}
 	err = parse(p, `abc`)
 	if err == nil || err.Error() != "1: parse error when ParseCommand: no space found" {
