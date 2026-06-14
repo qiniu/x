@@ -110,9 +110,9 @@ func (p *ParseError) Error() string {
 // a command followed by a JSON object. It uses the registered handlers to process each
 // command. If any error occurs during reading, parsing, or handling a command, a ParseError
 // is returned with details about the error.
-func (p *Parser) Parse(in io.Reader, maxLine int) error {
+func (p *Parser) Parse(in io.Reader, maxLineSize int) error {
 	lnum := 0
-	r := bufio.NewReaderSize(in, maxLine)
+	r := bufio.NewReaderSize(in, maxLineSize)
 	for {
 		line, isPrefix, err := r.ReadLine()
 		lnum++

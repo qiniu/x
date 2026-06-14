@@ -111,12 +111,12 @@ p.HandleFunc("baz", func(param BazParam) { ... })
 #### func (*Parser) Parse
 
 ```go
-func (p *Parser) Parse(in io.Reader, maxLine int) error
+func (p *Parser) Parse(in io.Reader, maxLineSize int) error
 ```
 
 Reads and parses data line by line from `in`:
 
-- `maxLine` specifies the maximum buffer size (in bytes) for a single line; if a line exceeds this length, an error is returned;
+- `maxLineSize` specifies the maximum buffer size (in bytes) for a single line; if a line exceeds this length, an error is returned;
 - Each line is split at the first space into a `command` and a `JSON payload`;
 - The handler registered for the command is looked up, and the JSON payload is unmarshaled into that handler's parameter type;
 - The handler function is then invoked; if it returns a non-`nil` `error`, parsing stops and that error is returned;
@@ -154,7 +154,7 @@ Represents an error that occurred during `Parse`, including the line number, the
 
 | When             | Trigger Condition                                              |
 | ---------------- | --------------------------------------------------------------- |
-| `ReadLine`        | An I/O error occurred while reading a line, or a line exceeds `maxLine` |
+| `ReadLine`        | An I/O error occurred while reading a line, or a line exceeds `maxLineSize` |
 | `ParseCommand`    | No space found in the line, or the command has no registered handler |
 | `UnmarshalParam`  | Failed to unmarshal the JSON payload                            |
 | `CallHandler <cmd>` | The handler function returned a non-`nil` `error`             |
