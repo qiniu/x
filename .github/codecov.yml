@@ -2,7 +2,12 @@ coverage:
   ignore:
     - "cmdline"
     - "event"
+    - "errors"
     - "http/fs/cached.v1"
+    - "humanize"
+    - "rpc"
     - "test"
     - "ts"
+    - "url"
     - "xgo"
+    - "xlog"
