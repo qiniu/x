@@ -1,4 +1,8 @@
 coverage:
   ignore:
+    - "cmdline"
+    - "event"
+    - "http/fs/cached.v1"
     - "test"
     - "ts"
+    - "xgo"
