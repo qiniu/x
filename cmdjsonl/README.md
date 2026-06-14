@@ -1,5 +1,6 @@
 # cmdjsonl
 
+[![Build Status](https://github.com/qiniu/x/actions/workflows/go.yml/badge.svg)](https://github.com/qiniu/x/actions/workflows/go.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/qiniu/x/cmdjsonl.svg)](https://pkg.go.dev/github.com/qiniu/x/cmdjsonl)
 
 `cmdjsonl` is a Go package for parsing data in the `application/x-cmdjsonl` format. This format represents command-style invocations as line-oriented text, making it convenient for streaming, logging, and cross-language/cross-process communication.
@@ -125,6 +126,17 @@ Reads and parses data line by line from `in`:
 - The handler registered for the command is looked up, and the JSON payload is unmarshaled into that handler's parameter type;
 - The handler function is then invoked; if it returns a non-`nil` `error`, parsing stops and that error is returned;
 - When `io.EOF` is reached, parsing completes normally and `nil` is returned.
+
+#### func (*Parser) ParseLax
+
+```go
+func (p *Parser) ParseLax(in io.Reader, maxLineSize int) error
+```
+
+`ParseLax` is similar to `Parse` but ignores lines with unknown commands instead of returning an error. This allows the parser to continue processing valid commands even if some lines contain unrecognized commands.
+
+The only difference from `Parse` is in the `ParseCommand` stage: when a line's command has no registered handler, `ParseLax` skips that line and continues parsing, instead of stopping and returning an error. All other error cases (`ReadLine`, `UnmarshalParam`, `CallHandler <cmd>`) still behave the same as `Parse`, returning a `*ParseError` and stopping parsing.
+
 ### type InvalidHandler
 
 ```go
@@ -164,3 +176,5 @@ Represents an error that occurred during `Parse`, including the line number, the
 | `CallHandler <cmd>` | The handler function returned a non-`nil` `error`             |
 
 When the end of input (`io.EOF`) is reached normally, `Parse` returns `nil`, indicating successful completion.
+
+`ParseLax` shares the same error handling table as `Parse`, with one exception: in the `ParseCommand` stage, the "command has no registered handler" trigger condition is ignored by `ParseLax` (the line is skipped instead of producing an error). All other trigger conditions (including "no space found in the line" in the `ParseCommand` stage) still result in a `*ParseError`.
