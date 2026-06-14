@@ -91,34 +91,30 @@ func EnumBLines(r io.Reader) BLineIter {
 
 // ----------------------------------------------------------------------------
 
-// LineReader is a wrapper around io.Reader that provides a method to read lines.
-type LineReader struct {
-	r io.Reader
-}
-
-func (p LineReader) XGo_Enum() LineIter {
-	return EnumLines(p.r)
-}
-
 // Lines returns a LineReader that reads lines from the given reader.
-func Lines(r io.Reader) LineReader {
-	return LineReader{r}
-}
-
-// ----------------------------------------------------------------------------
-
-// BLineReader is a wrapper around io.Reader that provides a method to read lines.
-type BLineReader struct {
-	r io.Reader
-}
-
-func (p BLineReader) XGo_Enum() BLineIter {
-	return EnumBLines(p.r)
+func Lines(r io.Reader) func(yield func(line string) bool) {
+	return func(yield func(line string) bool) {
+		it := EnumLines(r)
+		for {
+			line, ok := it.Next()
+			if !ok || !yield(line) {
+				break
+			}
+		}
+	}
 }
 
 // BLines returns a BLineReader that reads lines from the given reader.
-func BLines(r io.Reader) BLineReader {
-	return BLineReader{r}
+func BLines(r io.Reader) func(yield func(line []byte) bool) {
+	return func(yield func(line []byte) bool) {
+		it := EnumBLines(r)
+		for {
+			line, ok := it.Next()
+			if !ok || !yield(line) {
+				break
+			}
+		}
+	}
 }
 
 // ----------------------------------------------------------------------------
