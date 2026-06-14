@@ -1,6 +1,6 @@
 module github.com/qiniu/x
 
-go 1.18
+go 1.23
 
 retract (
     v7.0.0+incompatible
