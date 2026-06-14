@@ -68,6 +68,10 @@ greet {"name":"Alice"}
 }
 ```
 
+You can use cmdjsonl to customize a new script. For example:
+
+* [demo/cmdjsonl](demo/cmdjsonl/cmdjsonl.go).
+
 ## API
 
 ### type Parser
