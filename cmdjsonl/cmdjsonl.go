@@ -113,6 +113,7 @@ func (p *ParseError) Error() string {
 func (p *Parser) Parse(in io.Reader, maxLineSize int) error {
 	lnum := 0
 	r := bufio.NewReaderSize(in, maxLineSize)
+	cmds := p.cmds
 	for {
 		line, isPrefix, err := r.ReadLine()
 		lnum++
@@ -130,7 +131,7 @@ func (p *Parser) Parse(in io.Reader, maxLineSize int) error {
 			return &ParseError{Line: lnum, When: "ParseCommand", Msg: "no space found"}
 		}
 		cmd := string(line[:pos])
-		h, ok := p.cmds[cmd]
+		h, ok := cmds[cmd]
 		if !ok {
 			return &ParseError{Line: lnum, When: "ParseCommand", Msg: "unknown command '" + cmd + "'"}
 		}
