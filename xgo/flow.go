@@ -45,9 +45,12 @@ outer:
 				continue
 			}
 			if cond4(x) {
-				return v1, v2, ...
+				continue outer
 			}
 			if cond5(x) {
+				return v1, v2, ...
+			}
+			if cond6(x) {
 				ret1, ret2, ... = v1, v2, ...
 				return
 			}
@@ -81,10 +84,13 @@ _xgo_continue_1:
 					return xgo.Continue
 				}
 				if cond4(x) {
+					return xgo.ContinueLabel - 0 // continue outer
+				}
+				if cond5(x) {
 					xgo.SetRetVal(struct{v1 T1; v2 T2; ...}{v1, v2, ...})
 					return xgo.ReturnVals
 				}
-				if cond5(x) {
+				if cond6(x) {
 					ret1, ret2, ... = v1, v2, ...
 					return xgo.Return
 				}
@@ -96,7 +102,9 @@ _xgo_continue_1:
 		case xgo.BreakLabel + 0:
 			break outer
 		case xgo.Continue:
-			goto lzContinue
+			goto _xgo_continue_1
+		case xgo.ContinueLabel - 0:
+			continue outer
 		case xgo.Return:
 			return
 		case xgo.ReturnVals:
@@ -124,11 +132,12 @@ func _gls_set_retval(v any) {
 // -----------------------------------------------------------------------------
 
 const (
-	Continue   = -3 // continue
-	ReturnVals = -2 // return with value
-	Return     = -1 // return without value
-	Break      = 1  // break without label
-	BreakLabel = 2  // break with label (BreakLabel + N)
+	ContinueLabel = -4 // continue with label (ContinueLabel - N)
+	Continue      = -3 // continue without label
+	ReturnVals    = -2 // return with value
+	Return        = -1 // return without value
+	Break         = 1  // break without label
+	BreakLabel    = 2  // break with label (BreakLabel + N)
 )
 
 // SetRetVal sets the return value of the current goroutine.
