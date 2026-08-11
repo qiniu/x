@@ -8,6 +8,7 @@ coverage:
     - "http"
     - "httputil"
     - "humanize"
+    - "log"
     - "osx"
     - "reqid"
     - "rpc"
