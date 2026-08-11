@@ -29,18 +29,28 @@ func RepeatUntil(__xgo_autoclosure_cond func() bool, body func() int) int {
 
 // example:
 
-func foo(...) (T1, T2, ...) {
+func foo(...) (ret1 T1, ret2 T2, ...) {
 	x := 0
-	repeatUntil x > 10 {
-		x = modify(x)
-		if cond1(x) {
-			break
-		}
-		if cond2(x) {
-			continue
-		}
-		if cond3(x) {
-			return v1, v2, ...
+outer:
+	for {
+		repeatUntil x > 10 {
+			x = modify(x)
+			if cond1(x) {
+				break
+			}
+			if cond2(x) {
+				break outer
+			}
+			if cond3(x) {
+				continue
+			}
+			if cond4(x) {
+				return v1, v2, ...
+			}
+			if cond5(x) {
+				ret1, ret2, ... = v1, v2, ...
+				return
+			}
 		}
 	}
 	return ...
@@ -52,33 +62,47 @@ import "github.com/qiniu/x/xgo"
 
 func foo(...) (T1, T2, ...) {
 	x := 0
-lzContinue:
-	switch RepeatUntil(
-		func() bool {
-			return x > 10
-		},
-		func() int {
-			x = modify(x)
-			if cond1(x) {
-				return xgo.Break
-			}
-			if cond2(x) {
-				return xgo.Continue
-			}
-			if cond3(x) {
-				xgo.SetRetVal(struct{v1 T1; v2 T2; ...}{v1, v2, ...})
-				return xgo.Return
-			}
-			return 0
-		},
-	) {
-	case xgo.Break:
-		// no-op
-	case xgo.Continue:
-		goto lzContinue
-	case xgo.Return:
-		_xgo_ret := xgo.RetVal().(struct{v1 T1; v2 T2; ...})
-		return _xgo_ret.v1, _xgo_ret.v2, ...
+outer:
+	for {
+_xgo_continue_1:
+		switch RepeatUntil(
+			func() bool {
+				return x > 10
+			},
+			func() int {
+				x = modify(x)
+				if cond1(x) {
+					return xgo.Break
+				}
+				if cond2(x) {
+					return xgo.BreakLabel + 0 // break outer
+				}
+				if cond3(x) {
+					return xgo.Continue
+				}
+				if cond4(x) {
+					xgo.SetRetVal(struct{v1 T1; v2 T2; ...}{v1, v2, ...})
+					return xgo.ReturnVals
+				}
+				if cond5(x) {
+					ret1, ret2, ... = v1, v2, ...
+					return xgo.Return
+				}
+				return 0
+			},
+		) {
+		case xgo.Break:
+			// no-op
+		case xgo.BreakLabel + 0:
+			break outer
+		case xgo.Continue:
+			goto lzContinue
+		case xgo.Return:
+			return
+		case xgo.ReturnVals:
+			_xgo_ret := xgo.RetVal().(struct{v1 T1; v2 T2; ...})
+			return _xgo_ret.v1, _xgo_ret.v2, ...
+		}
 	}
 	return ...
 }
@@ -100,9 +124,11 @@ func _gls_set_retval(v any) {
 // -----------------------------------------------------------------------------
 
 const (
-	Return   = -1
-	Break    = 1
-	Continue = 2
+	Continue   = -3 // continue
+	ReturnVals = -2 // return with value
+	Return     = -1 // return without value
+	Break      = 1  // break without label
+	BreakLabel = 2  // break with label (BreakLabel + N)
 )
 
 // SetRetVal sets the return value of the current goroutine.
