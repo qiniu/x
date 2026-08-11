@@ -61,7 +61,10 @@ outer:
 
 // compiles to:
 
-import "github.com/qiniu/x/xgo"
+import (
+	"github.com/qiniu/x/xgo"
+	"github.com/qiniu/x/xgo/retval"
+)
 
 func foo(...) (ret1 T1, ret2 T2, ...) {
 	x := 0
@@ -87,7 +90,7 @@ _xgo_continue_1:
 					return xgo.ContinueLabel - 0 // continue outer
 				}
 				if cond5(x) {
-					xgo.SetRetVal(struct{v1 T1; v2 T2; ...}{v1, v2, ...})
+					retval.Set(struct{v1 T1; v2 T2; ...}{v1, v2, ...})
 					return xgo.ReturnVals
 				}
 				if cond6(x) {
@@ -108,7 +111,7 @@ _xgo_continue_1:
 		case xgo.Return:
 			return
 		case xgo.ReturnVals:
-			_xgo_ret := xgo.RetVal().(struct{v1 T1; v2 T2; ...})
+			_xgo_ret := retval.Get().(struct{v1 T1; v2 T2; ...})
 			return _xgo_ret.v1, _xgo_ret.v2, ...
 		}
 	}
@@ -116,18 +119,6 @@ _xgo_continue_1:
 }
 
 */
-
-// -----------------------------------------------------------------------------
-// gls = goroutine local storage
-
-func _gls_get_retval() any {
-	// TODO(xsw):
-	return nil
-}
-
-func _gls_set_retval(v any) {
-	// TODO(xsw):
-}
 
 // -----------------------------------------------------------------------------
 
@@ -139,15 +130,5 @@ const (
 	Break         = 1  // break without label
 	BreakLabel    = 2  // break with label (BreakLabel + N)
 )
-
-// SetRetVal sets the return value of the current goroutine.
-func SetRetVal(v any) {
-	_gls_set_retval(v)
-}
-
-// RetVal returns the return value of the current goroutine.
-func RetVal() any {
-	return _gls_get_retval()
-}
 
 // -----------------------------------------------------------------------------
