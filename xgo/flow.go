@@ -32,6 +32,7 @@ func RepeatUntil(__xgo_autoclosure_cond func() bool, body func() int) int {
 func foo(...) (T1, T2, ...) {
 	x := 0
 	repeatUntil x > 10 {
+		x = modify(x)
 		if cond1(x) {
 			break
 		}
@@ -41,12 +42,13 @@ func foo(...) (T1, T2, ...) {
 		if cond3(x) {
 			return v1, v2, ...
 		}
-		x = modify(x)
 	}
 	return ...
 }
 
 // compiles to:
+
+import "github.com/qiniu/x/xgo"
 
 func foo(...) (T1, T2, ...) {
 	x := 0
@@ -56,25 +58,25 @@ lzContinue:
 			return x > 10
 		},
 		func() int {
+			x = modify(x)
 			if cond1(x) {
-				return Break
+				return xgo.Break
 			}
 			if cond2(x) {
-				return Continue
+				return xgo.Continue
 			}
 			if cond3(x) {
 				xgo.SetRetVal(struct{v1 T1; v2 T2; ...}{v1, v2, ...})
-				return Return
+				return xgo.Return
 			}
-			x = modify(x)
 			return 0
 		},
 	) {
-	case Break:
+	case xgo.Break:
 		// no-op
-	case Continue:
+	case xgo.Continue:
 		goto lzContinue
-	case Return:
+	case xgo.Return:
 		_xgo_ret := xgo.RetVal().(struct{v1 T1; v2 T2; ...})
 		return _xgo_ret.v1, _xgo_ret.v2, ...
 	}
