@@ -60,7 +60,7 @@ outer:
 
 import "github.com/qiniu/x/xgo"
 
-func foo(...) (T1, T2, ...) {
+func foo(...) (ret1 T1, ret2 T2, ...) {
 	x := 0
 outer:
 	for {
