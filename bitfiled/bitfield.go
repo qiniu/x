@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-// Package bitfield provides bit-field access helpers for llcppg generated
-// bindings.
-//
-// The code is the same for every C/C++ package: it only depends on a bit
-// offset and a bit width, never on a particular struct.
+// Package bitfield provides bit-field access helpers.
 //
 // Bit numbering: bit k of the memory at base is bit (k % 8) of byte (k / 8),
 // where bit 0 of a byte is its least significant bit (little-endian bit
