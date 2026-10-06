@@ -33,69 +33,35 @@ import (
 // Unsigned returns bits off .. off+width-1 of the memory at base,
 // zero-extended into the low bits of the result.
 func Unsigned(base unsafe.Pointer, off, width uintptr) uint64 {
-	first := off >> 3
-	n := ((off + width - 1) >> 3) - first + 1 // bytes touched, 1..9
-	shift := off & 7
-
-	m := n
-	if m > 8 {
-		m = 8
+	s := unsafe.Slice((*uint8)(base), (off+width+7)/8)
+	var r uint64
+	for i := uintptr(0); i < width; i++ {
+		if s[(off+i)/8]&(uint8(1)<<((off+i)%8)) != 0 {
+			r |= uint64(1) << i
+		}
 	}
-	var v uint64
-	for i := uintptr(0); i < m; i++ {
-		v |= uint64(*(*uint8)(unsafe.Add(base, first+i))) << (8 * i)
-	}
-	v >>= shift
-	if n > 8 { // only possible when shift > 0
-		v |= uint64(*(*uint8)(unsafe.Add(base, first+8))) << (64 - shift)
-	}
-	if width < 64 {
-		v &= uint64(1)<<width - 1
-	}
-	return v
+	return r
 }
 
 // Signed returns the same bits as Unsigned, sign-extended
 // from bit width-1.
 func Signed(base unsafe.Pointer, off, width uintptr) int64 {
-	v := Unsigned(base, off, width)
-	if width >= 64 {
-		return int64(v)
-	}
-	s := 64 - width
-	return int64(v<<s) >> s
+	r := Unsigned(base, off, width)
+	shift := 64 - width
+	return int64(r<<shift) >> shift
 }
 
 // Set replaces bits off .. off+width-1 of the memory at base with
 // the low width bits of v. All other bits are left unchanged.
 func Set(base unsafe.Pointer, off, width uintptr, v uint64) {
-	first := off >> 3
-	n := ((off + width - 1) >> 3) - first + 1 // bytes touched, 1..9
-	shift := off & 7
-
-	mask := ^uint64(0)
-	if width < 64 {
-		mask = uint64(1)<<width - 1
-	}
-	v &= mask
-
-	m := n
-	if m > 8 {
-		m = 8
-	}
-	var cur uint64
-	for i := uintptr(0); i < m; i++ {
-		cur |= uint64(*(*uint8)(unsafe.Add(base, first+i))) << (8 * i)
-	}
-	// Bits shifted out of the 64-bit window belong to the 9th byte.
-	cur = cur&^(mask<<shift) | v<<shift
-	for i := uintptr(0); i < m; i++ {
-		*(*uint8)(unsafe.Add(base, first+i)) = uint8(cur >> (8 * i))
-	}
-	if n > 8 { // only possible when shift > 0
-		hi := width - (64 - shift) // bits that land in the 9th byte, 1..7
-		hmask := uint8(1)<<hi - 1
-		p := (*uint8)(unsafe.Add(base, first+8))
-		*p = *p&^hmask | uint8(v>>(64-shift))&hmask
+	s := unsafe.Slice((*uint8)(base), (off+width+7)/8)
+	for i := uintptr(0); i < width; i++ {
+		idx := (off + i) / 8
+		mask := uint8(1) << ((off + i) % 8)
+		if v>>i&1 != 0 {
+			s[idx] |= mask
+		} else {
+			s[idx] &^= mask
+		}
 	}
 }
