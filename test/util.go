@@ -44,7 +44,7 @@ type testingT interface {
 
 // Diff compares the dst and src byte slices.
 // If they are different, it writes the dst to the outfile and logs the differences.
-func Diff(t testingT, outfile string, dst, src []byte) bool {
+func Diff[T testingT](t T, outfile string, dst, src []byte) bool {
 	line := 1
 	offs := 0 // line offset
 	for i := 0; i < len(dst) && i < len(src); i++ {
