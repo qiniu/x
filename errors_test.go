@@ -35,7 +35,7 @@ func TestNewWith(t *testing.T) {
 	err := Foo()
 	if err != nil {
 		err = errors.NewWith(err, `Foo()`, -2, "x_test.Foo")
-		if strings.Index(err.Error(), "===> errors stack:\nx_test.Foo()\n\t") < 0 {
+		if !strings.Contains(err.Error(), "===> errors stack:\nx_test.Foo()\n\t") {
 			t.Fatal(err)
 		}
 	}
